@@ -8,8 +8,8 @@ XML::Tidy - tidy indenting of XML documents
 
 =head1 VERSION
 
-This documentation refers to version 1.0.4CAAf5B of 
-XML::Tidy, which was released on Fri Dec 10 10:41:05:11 2004.
+This documentation refers to version 1.0.4CAJna1 of 
+XML::Tidy, which was released on Fri Dec 10 19:49:36:01 2004.
 
 =head1 SYNOPSIS
 
@@ -146,6 +146,10 @@ Revision history for Perl extension XML::Tidy:
 
 =over 4
 
+=item - 1.0.4CAJna1  Fri Dec 10 19:49:36:01 2004
+
+* added optional 'filename' => to write()
+
 =item - 1.0.4CAAf5B  Fri Dec 10 10:41:05:11 2004
 
 * removed 2nd param from tidy() so that 1st param is just indent string
@@ -209,7 +213,7 @@ require      XML::XPath;
 use base qw( XML::XPath );
 use Carp;
 use XML::XPath::XMLParser;
-our $VERSION     = '1.0.4CAAf5B'; # major . minor . PipTimeStamp
+our $VERSION     = '1.0.4CAJna1'; # major . minor . PipTimeStamp
 our $PTVR        = $VERSION; $PTVR =~ s/^\d+\.\d+\.//; # strip major and minor
 # Please see `perldoc Time::PT` for an explanation of $PTVR
 
@@ -340,7 +344,13 @@ sub prune { # remove a section of the tree at the xpath location parameter
 sub write { # write out an XML file to disk from a Tidy object
   my $self = shift(); my $root;
   my $flnm = shift() || $self->get_filename();
+  if(defined($flnm) && $flnm && $flnm =~ /^[-_]?(flnm|filename)$/) {
+     $flnm = shift() || $self->get_filename();
+  }
   my $xplc = shift() || undef;
+  if(defined($xplc) && $xplc && $xplc =~ /^[-_]?(xplc$|xpath_loc)/) {
+     $xplc = shift() || undef;
+  }
   if(defined($self) && defined($flnm)) {
     if(defined($xplc) && $xplc) {
          $root = XML::XPath::Node::Element->new();

@@ -8,8 +8,8 @@ XML::Tidy - tidy indenting of XML documents
 
 VERSION
 
-This documentation refers to version 1.0.4CAAf5B of 
-XML::Tidy, which was released on Fri Dec 10 10:41:05:11 2004.
+This documentation refers to version 1.0.4CAJna1 of 
+XML::Tidy, which was released on Fri Dec 10 19:49:36:01 2004.
 
 SYNOPSIS
 
@@ -139,6 +139,10 @@ Tidy object's root.  Only the first matching element is written.
 CHANGES
 
 Revision history for Perl extension XML::Tidy:
+
+- 1.0.4CAJna1  Fri Dec 10 19:49:36:01 2004
+
+* added optional 'filename' => to write()
 
 - 1.0.4CAAf5B  Fri Dec 10 10:41:05:11 2004
 
