@@ -8,8 +8,8 @@ XML::Tidy - tidy indenting of XML documents
 
 =head1 VERSION
 
-This documentation refers to version 1.2.4CCJW4G of 
-XML::Tidy, which was released on Sun Dec 12 19:32:04:16 2004.
+This documentation refers to version 1.2.51HM2ae of 
+XML::Tidy, which was released on Mon Jan 17 22:02:36:40 2005.
 
 =head1 SYNOPSIS
 
@@ -33,6 +33,16 @@ indenting.
 =head1 2DO
 
 =over 2
+
+=item - add tests for XML::XPath::Node wrappers
+
+=item - add tests for toString
+
+=item - fix compress() comment bug
+
+=item - add tests for compress() && expand()
+
+=item - imp namespace option in compress()
 
 =item - mk tidy keep doc order when duping attz, namespaces,
           (hopefully someday PIs) into temp $docu && $tnod
@@ -73,10 +83,8 @@ other uses.
 The strip() member function searches the Tidy object for all
 mixed-content (ie. non-data) text nodes && empties them out.
 This will basically unformat any markup indenting.  strip() is
-probably barely useful by itself but it is needed by tidy() &&
-is exposed as a method in case it comes in handy for other uses.
-It does make XML files smaller (sometimes significantly so) if
-you don't care about human readability.
+used by compress() && tidy() but it is exposed because it could be
+worthwhile by itself.
 
 =head2 tidy()
 
@@ -104,6 +112,49 @@ commented out of tidy().  This means that tidy() unfortunately
 removes processing instructions from files it operates on.  I hope
 this shortcoming can be repaired in the near future.  tidy() also
 disturbs some XML escapes in whatever ways L<XML::XPath> does.
+
+=head2 compress()
+
+The compress() member function calls strip() on the Tidy object
+then creates comments ahead of the root element which contain the
+names of elements && attributes as they occurred with their
+respective element && attribute names represented as just an index
+throughout the document.
+
+compress() can accept a parameter describing which node types to
+attempt to shrink down as abbreviations.  This parameter should be
+a string of just the first letters of each node type you wish to
+include as in the following mapping:
+
+  e = elements
+  a = attribute keys
+  v = attribute values *EXPERIMENTAL*
+  t = text      nodes  *EXPERIMENTAL*
+  c = comment   nodes  *EXPERIMENTAL*
+  n = namespace nodes  *not-yet-implemented*
+
+Attribute values ('v') && text nodes ('t') both seem to work fine as
+they are tokenized.  I have some bugs in the comment node compression
+which I haven't been able to find yet so that one should be avoided
+for now.  Since these three node types ('vtc') all require tokenization,
+they are not included in default compression ('ea').  An example call
+which includes values && text would be:
+
+  $tidy_obj->compress('eatv');
+
+The original document structure (ie. node hierarchy) is preserved.
+compress() significantly reduces the file size of most XML documents
+for when size matters more than immediate human readability.
+expand() performs the opposite conversion.
+
+=head2 expand()
+
+The expand() member function reads any XML::Tidy::compress comments
+from the Tidy object && uses them to reconstruct the document
+that was passed to compress().  These utilities together seem like
+a mildly useful way to tidy XML documents so they earned inclusion
+in this module.  compress() && expand() should be considered
+experimental.
 
 =head2 prune()
 
@@ -134,11 +185,91 @@ write() can also take a secondary parameter which specifies an XPath
 location to be written out as the new root element instead of the
 Tidy object's root.  Only the first matching element is written.
 
+=head2 toString()
+
+The toString() member function is almost identical to write() except
+that it takes no parameters && simply returns the equivalent XML
+string as a scalar.  It is a little weird because normally only
+XML::XPath::Node objects have a toString member but I figure it makes
+sense to extend the same syntax to the parent object as well since
+it is a useful option.
+
+=head1 createNode Wrappers
+
+The following are just aliases to Node constructors.  They'll work with
+just the unique portion of the node type as the member function name.
+
+=head2 e() or el() or elem() or createElement()
+
+wrapper for XML::XPath::Node::Element->new()
+
+=head2 a() or at() or attr() or createAttribute()
+
+wrapper for XML::XPath::Node::Attribute->new()
+
+=head2 c() or cm() or cmnt() or createComment()
+
+wrapper for XML::XPath::Node::Comment->new()
+
+=head2 t() or tx() or text() or createTextNode()
+
+wrapper for XML::XPath::Node::Text->new()
+
+=head2 p() or pi() or proc() or createProcessingInstruction()
+
+wrapper for XML::XPath::Node::PI->new()
+
+=head2 n() or ns() or nspc() or createNamespace()
+
+wrapper for XML::XPath::Node::Namespace->new()
+
+=head1 EXPORTED CONSTANTS
+
+XML::Tidy also exports the same node constants as L<XML::XPath::Node>
+(which correspond to DOM values).  These include:
+
+  UNKNOWN_NODE
+  ELEMENT_NODE
+  ATTRIBUTE_NODE
+  TEXT_NODE
+  CDATA_SECTION_NODE
+  ENTITY_REFERENCE_NODE
+  ENTITY_NODE
+  PROCESSING_INSTRUCTION_NODE
+  COMMENT_NODE
+  DOCUMENT_NODE
+  DOCUMENT_TYPE_NODE
+  DOCUMENT_FRAGMENT_NODE
+  NOTATION_NODE
+  ELEMENT_DECL_NODE
+  ATT_DEF_NODE
+  XML_DECL_NODE
+  ATTLIST_DECL_NODE
+  NAMESPACE_NODE
+
+XML::Tidy also exports:
+
+  STANDARD_XML_DECL
+
+which returns a reasonable default XML declaration string.
+
 =head1 CHANGES
 
 Revision history for Perl extension XML::Tidy:
 
 =over 4
+
+=item - 1.2.51HM2ae  Mon Jan 17 22:02:36:40 2005
+
+* added compress() && expand()
+
+* added toString()
+
+=item - 1.2.4CKBHxt  Mon Dec 20 11:17:59:55 2004
+
+* added exporting of XML::XPath::Node (DOM) constants
+
+* added node object creation wrappers (like LibXML)
 
 =item - 1.2.4CCJW4G  Sun Dec 12 19:32:04:16 2004
 
@@ -208,16 +339,60 @@ package XML::Tidy;
 use warnings;
 use strict;
 require      XML::XPath;
-use base qw( XML::XPath );
+use base qw( XML::XPath Exporter );
+use vars qw( $AUTOLOAD @EXPORT   );
 use Carp;
+use Exporter;
+use Math::BaseCnv qw(:b64);
 use XML::XPath::XMLParser;
-our $VERSION     = '1.2.4CCJW4G'; # major . minor . PipTimeStamp
+our $VERSION     = '1.2.51HM2ae'; # major . minor . PipTimeStamp
 our $PTVR        = $VERSION; $PTVR =~ s/^\d+\.\d+\.//; # strip major and minor
 # Please see `perldoc Time::PT` for an explanation of $PTVR.
+@EXPORT = qw(
+    UNKNOWN_NODE
+    ELEMENT_NODE
+    ATTRIBUTE_NODE
+    TEXT_NODE
+    CDATA_SECTION_NODE
+    ENTITY_REFERENCE_NODE
+    ENTITY_NODE
+    PROCESSING_INSTRUCTION_NODE
+    COMMENT_NODE
+    DOCUMENT_NODE
+    DOCUMENT_TYPE_NODE
+    DOCUMENT_FRAGMENT_NODE
+    NOTATION_NODE
+    ELEMENT_DECL_NODE
+    ATT_DEF_NODE
+    XML_DECL_NODE
+    ATTLIST_DECL_NODE
+    NAMESPACE_NODE
+    STANDARD_XML_DECL
+);
+sub UNKNOWN_NODE                () { 0;}
+sub ELEMENT_NODE                () { 1;}
+sub ATTRIBUTE_NODE              () { 2;}
+sub TEXT_NODE                   () { 3;}
+sub CDATA_SECTION_NODE          () { 4;}
+sub ENTITY_REFERENCE_NODE       () { 5;}
+sub ENTITY_NODE                 () { 6;}
+sub PROCESSING_INSTRUCTION_NODE () { 7;}
+sub COMMENT_NODE                () { 8;}
+sub DOCUMENT_NODE               () { 9;}
+sub DOCUMENT_TYPE_NODE          () {10;}
+sub DOCUMENT_FRAGMENT_NODE      () {11;}
+sub NOTATION_NODE               () {12;}
+# Non core DOM stuff
+sub ELEMENT_DECL_NODE           () {13;}
+sub ATT_DEF_NODE                () {14;}
+sub XML_DECL_NODE               () {15;}
+sub ATTLIST_DECL_NODE           () {16;}
+sub NAMESPACE_NODE              () {17;}
+# Standard XML Declaration
+my $xmld = qq(<?xml version="1.0" encoding="utf-8"?>\n);
+sub STANDARD_XML_DECL           () {$xmld;}
 
 my $DBUG = 0;
-
-my $xmlh = qq(<?xml version="1.0" encoding="utf-8"?>\n); # standard XML header
 
 sub new {
   my $clas = shift();
@@ -231,7 +406,7 @@ sub reload { # dump XML text && re-parse object to re-index all nodes cleanly
   my $self = shift();
   if(defined($self)) {
     my($root)= $self->findnodes('/');
-    my $data = $xmlh;
+    my $data = $xmld;
     $data .= $_->toString() foreach($root->getChildNodes());
     $self->set_xml($data);
     my $prsr = XML::XPath::XMLParser->new('xml' => $data);
@@ -283,7 +458,7 @@ sub tidy {
     }
     $docu->appendChild($root);
     ($root)= $docu->findnodes('/');
-    my $data = $xmlh;
+    my $data = $xmld;
     $data .= $_->toString() foreach($root->getChildNodes());
     $self->set_xml($data);
     my $prsr = XML::XPath::XMLParser->new('xml' => $data);
@@ -327,6 +502,265 @@ sub _rectidy { # recursively tidy up indent formatting of elements
   return($tnod);
 }
 
+sub compress { # compress an XML::Tidy object into look-up tables
+  my $self = shift(); my $flgz = shift(); # options of node types to include
+  my @elut =      (); my @alut =      (); # element && attribute look-up-tables
+  my %efou =      (); my %afou =      (); # element && attribute found flags
+  my @vlut =      (); my @tlut =      (); # attribute value && text
+  my %vfou =      (); my %tfou =      ();
+  my @nlut =      (); my @clut =      (); # namespace && comment
+  my %nfou =      (); my %cfou =      ();
+  my $cstr = "XML::Tidy::compress v$VERSION";
+  my $ntok = qr/[\(\)\[\]\{\}\/\*\+\?]/; # non-token quoted regex
+  $flgz = 'ea'     unless(defined($flgz)); # Default flags: just elemz && attrz
+  $flgz = 'eatvnc' if($flgz eq 'all'); # AttValz && Text seem to work alright
+                                       #   but beware of bugs in Comment I
+                                       #   haven't been able to squash yet.
+  $self->strip(); # remove non-data text nodes
+  my($root)= $self->findnodes('/');
+  if($flgz =~ /e[^E]*$/) { # elements
+    foreach($root->findnodes('//*')) {
+      my $name = $_->getName();
+      unless(exists($efou{$name})) {
+        push(@elut, $name);
+        $efou{$name} = $#elut;
+      }
+      # 5 below is the index of XML::XPath::Node::Element's node_name field
+      ${$_}->[5] = 'e' . b64($efou{$name}); # $_->setName(...
+    }
+    $cstr .= "\ne:@elut" if(@elut);
+  }
+  if($flgz =~ /(a[^A]*|v[^V]*)$/) { # attributes (keys or values)
+    foreach($root->findnodes('//@*')) {
+      if($flgz =~ /a[^A]*$/) { # attribute keys
+        my $name = $_->getName();
+        if(exists($efou{$name})) { # reuse element keys matching attributes
+          # 4 is the index of XML::XPath::Node::Attribute's node_key   field
+          ${$_}->[4] = 'e' . b64($efou{$name}); # $_->setName(...
+        } else {
+          unless(exists($afou{$name})) {
+            push(@alut, $name);
+            $afou{$name} = $#alut;
+          }
+          ${$_}->[4] = 'a' . b64($afou{$name}); # $_->setName(...
+        }
+      }
+      if($flgz =~ /v[^V]*$/) { # attribute values
+        my $wval = $_->getNodeValue(); $wval = '' unless(defined($wval));
+        foreach my $valu (split(/\s+/, $wval)) {
+          my $repl = '';
+          if     (exists($efou{$valu})) { # reuse elem keys matching attr valz
+            $repl = 'e' . b64($efou{$valu});
+          } elsif(exists($afou{$valu})) { # reuse attr keys matching attr valz
+            $repl = 'a' . b64($afou{$valu});
+          } elsif($valu !~ $ntok) {
+            unless(exists($vfou{$valu})) {
+              push(@vlut, $valu);
+              $vfou{$valu} = $#vlut;
+            }
+            $repl = 'v' . b64($vfou{$valu});
+          }
+          # 5 is the index of XML::XPath::Node::Attribute's node_value field
+          ${$_}->[5] =~ s/(^|\s+)$valu(\s+|$)/$1$repl$2/g if($valu !~ $ntok);
+        }
+      }
+    }
+    $cstr .= "\na:@alut" if(@alut);
+    $cstr .= "\nv:@vlut" if(@vlut);
+  }
+  if($flgz =~ /t[^T]*$/) { # text
+    foreach($root->findnodes('//text()')) {
+      my $wtxt = $_->getNodeValue();
+      foreach my $text (split(/\s+/, $wtxt)) {
+        my $repl = '';
+        if     (exists($efou{$text})) { # reuse elem keys matching text token
+          $repl = 'e' . b64($efou{$text});
+        } elsif(exists($afou{$text})) { # reuse attr keys matching text token
+          $repl = 'a' . b64($afou{$text});
+        } elsif(exists($afou{$text})) { # reuse attr valz matching text token
+          $repl = 'v' . b64($vfou{$text});
+        } elsif($text !~ $ntok) {
+          unless(exists($tfou{$text})) {
+            push(@tlut, $text);
+            $tfou{$text} = $#tlut;
+          }
+          $repl = 't' . b64($tfou{$text});
+        }
+        # 3 is the index of XML::XPath::Node::Text's node_text field
+        ${$_}->[3] =~ s/(^|\s+)$text(\s+|$)/$1$repl$2/g if($text !~ $ntok);
+      }
+    }
+    $cstr .= "\nt:@tlut" if(@tlut);
+  }
+  if($flgz =~ /c[^C]*$/) { # comment
+    foreach($root->findnodes('//comment()')) {
+      my $wcmt = $_->getNodeValue();
+      foreach my $cmnt (split(/\s+/, $wcmt)) {
+        my $repl = '';
+        if     (exists($efou{$cmnt})) { # reuse elem keys matching cmnt token
+          $repl = 'e' . b64($efou{$cmnt});
+        } elsif(exists($afou{$cmnt})) { # reuse attr keys matching cmnt token
+          $repl = 'a' . b64($afou{$cmnt});
+        } elsif(exists($afou{$cmnt})) { # reuse attr valz matching cmnt token
+          $repl = 'v' . b64($vfou{$cmnt});
+        } elsif(exists($tfou{$cmnt})) { # reuse text valz matching cmnt token
+          $repl = 't' . b64($tfou{$cmnt});
+        } elsif($cmnt !~ $ntok) {
+          unless(exists($cfou{$cmnt})) {
+            push(@clut, $cmnt);
+            $cfou{$cmnt} = $#clut;
+          }
+          $repl = 'c' . b64($cfou{$cmnt});
+        }
+        # 3 is the index of XML::XPath::Node::Comment's node_comment field
+        ${$_}->[3] =~ s/(^|\s+)$cmnt(\s+|$)/$1$repl$2/g if($cmnt !~ $ntok);
+      }
+    }
+    $cstr .= "\nc:@clut" if(@clut);
+  }
+  $root->appendChild($self->c($cstr));
+  $self->reload();
+}
+
+sub expand { # uncompress an XML::Tidy object from look-up tables
+  my $self = shift(); my $flgz = shift(); # options of node types to include
+  my @elut =      (); my @alut =      (); # element && attribute look-up-tables
+  my @vlut =      (); my @tlut =      (); # attribute value && text
+  my @nlut =      (); my @clut =      (); # namespace && comment
+  my $ntok = qr/[\(\)\[\]\{\}\/\*\+\?]/; # non-token quoted regex
+  my($root)= $self->findnodes('/');
+  foreach($root->findnodes('//comment()')) {
+    my $text = $_->getNodeValue();
+    if($text =~ s/^XML::Tidy::compress v(\d+)\.(\d+)\.([0-9A-Za-z._]{7})//) {
+      # may need to test $1, $2, $3 for versions later
+      while($text =~ s/^\n([eatvnc]):([^\n]+)//) {
+        my $ntyp = $1; my $lutd = $2;
+        if     ($ntyp eq 'e') {
+          push(@elut, split(/\s+/, $lutd));
+        } elsif($ntyp eq 'a') {
+          push(@alut, split(/\s+/, $lutd));
+        } elsif($ntyp eq 't') {
+          push(@tlut, split(/\s+/, $lutd));
+        } elsif($ntyp eq 'v') {
+          push(@vlut, split(/\s+/, $lutd));
+        } elsif($ntyp eq 'n') {
+#          push(@nlut, split(/\s+/, $lutd));
+        } elsif($ntyp eq 'c') {
+          push(@clut, split(/\s+/, $lutd));
+        }
+      }
+      $root->removeChild($_);
+    }
+  }
+  if(@elut) {
+    foreach($root->findnodes('//*')) {
+      my $name = $_->getName();
+      my $coun = $name;
+      if($coun =~ s/^e// && b10($coun) < @elut) {
+        $coun = b10($coun);
+        # 5 below is the index of XML::XPath::Node::Element's node_name field
+        ${$_}->[5] = $elut[$coun]; # $_->setName($elut[$coun]);
+      } else {
+        croak "!*EROR*! expand() cannot find look-up element:$name!\n";
+      }
+    }
+  }
+  if(@alut) {
+    foreach($root->findnodes('//@*')) {
+      my $name = $_->getName();
+      my $coun = $name;
+      if     ($coun =~ s/^e// && b10($coun) < @elut) {
+        $coun = b10($coun);
+        # 4 below is the index of XML::XPath::Node::Attribute's node_key field
+        ${$_}->[4] = $elut[$coun]; # $_->setName($elut[$coun]);
+      } elsif($coun =~ s/^a// && b10($coun) < @alut) {
+        $coun = b10($coun);
+        ${$_}->[4] = $alut[$coun]; # $_->setName($alut[$coun]);
+      } else {
+        croak "!*EROR*! expand() cannot find look-up attribute key:$name!\n";
+      }
+      if(@vlut) {
+        my $wval = $_->getNodeValue();
+        foreach my $valu (split(/\s+/, $wval)) {
+          unless($valu =~ $ntok) {
+            $coun = $valu;
+            if     ($coun =~ s/^e// && b10($coun) < @elut) {
+              $coun = b10($coun);
+              # 5 is the index of XML::XPath::Node::Attribute's node_value field
+              ${$_}->[5] =~ s/(^|\s+)$valu(\s+|$)/$1$elut[$coun]$2/g;
+            } elsif($coun =~ s/^a// && b10($coun) < @alut) {
+              $coun = b10($coun);
+              ${$_}->[5] =~ s/(^|\s+)$valu(\s+|$)/$1$alut[$coun]$2/g;
+            } elsif($coun =~ s/^v// && b10($coun) < @vlut) {
+              $coun = b10($coun);
+              ${$_}->[5] =~ s/(^|\s+)$valu(\s+|$)/$1$vlut[$coun]$2/g;
+            } else {
+              croak "!*EROR*! expand() cannot find look-up attribute value:$valu!\n";
+            }
+          }
+        }
+      }
+    }
+  }
+  if(@tlut) {
+    foreach($root->findnodes('//text()')) {
+      my $wtxt = $_->getNodeValue();
+      foreach my $text (split(/\s+/, $wtxt)) {
+        unless($text =~ $ntok) {
+          my $coun = $text;
+          if     ($coun =~ s/^e// && b10($coun) < @elut) {
+            $coun = b10($coun);
+            # 3 is the index of XML::XPath::Node::Text's node_text field
+            ${$_}->[3] =~ s/(^|\s+)$text(\s+|$)/$1$elut[$coun]$2/g;
+          } elsif($coun =~ s/^a// && b10($coun) < @alut) {
+            $coun = b10($coun);
+            ${$_}->[3] =~ s/(^|\s+)$text(\s+|$)/$1$alut[$coun]$2/g;
+          } elsif($coun =~ s/^t// && b10($coun) < @tlut) {
+            $coun = b10($coun);
+            ${$_}->[3] =~ s/(^|\s+)$text(\s+|$)/$1$tlut[$coun]$2/g;
+          } elsif($coun =~ s/^v// && b10($coun) < @vlut) {
+            $coun = b10($coun);
+            ${$_}->[3] =~ s/(^|\s+)$text(\s+|$)/$1$vlut[$coun]$2/g;
+          } else {
+            croak "!*EROR*! expand() cannot find look-up text token:$text!\n";
+          }
+        }
+      }
+    }
+  }
+  if(@clut) {
+    foreach($root->findnodes('//comment()')) {
+      my $wcmt = $_->getNodeValue();
+      foreach my $cmnt (split(/\s+/, $wcmt)) {
+        unless($cmnt =~ $ntok) {
+          my $coun = $cmnt;
+          if     ($coun =~ s/^e// && b10($coun) < @elut) {
+            $coun = b10($coun);
+            # 3 is the index of XML::XPath::Node::Comment's node_comment field
+            ${$_}->[3] =~ s/(^|\s+)$cmnt(\s+|$)/$1$elut[$coun]$2/g;
+          } elsif($coun =~ s/^a// && b10($coun) < @alut) {
+            $coun = b10($coun);
+            ${$_}->[3] =~ s/(^|\s+)$cmnt(\s+|$)/$1$alut[$coun]$2/g;
+          } elsif($coun =~ s/^v// && b10($coun) < @vlut) {
+            $coun = b10($coun);
+            ${$_}->[3] =~ s/(^|\s+)$cmnt(\s+|$)/$1$vlut[$coun]$2/g;
+          } elsif($coun =~ s/^t// && b10($coun) < @tlut) {
+            $coun = b10($coun);
+            ${$_}->[3] =~ s/(^|\s+)$cmnt(\s+|$)/$1$tlut[$coun]$2/g;
+          } elsif($coun =~ s/^c// && b10($coun) < @clut) {
+            $coun = b10($coun);
+            ${$_}->[3] =~ s/(^|\s+)$cmnt(\s+|$)/$1$clut[$coun]$2/g;
+          } else {
+            croak "!*EROR*! expand() cannot find look-up comment token:$cmnt!\n";
+          }
+        }
+      }
+    }
+  }
+  $self->reload();
+  $self->tidy();
+}
+
 sub prune { # remove a section of the tree at the xpath location parameter
   my $self = shift(); my $xplc = shift() || return(); # can't prune root node
   if(defined($xplc) && $xplc && $xplc =~ /^[-_]?(xplc$|xpath_loc)/) {
@@ -368,14 +802,56 @@ sub write { # write out an XML file to disk from a Tidy object
     } else {
         ($root)= $self->findnodes('/');
     }
-    my @kids = $root->getChildNodes();
     open( FILE, ">$flnm");
-    print FILE $xmlh;
-    print FILE $_->toString() , "\n" foreach(@kids);
+    print FILE $xmld;
+    print FILE $_->toString() , "\n" foreach($root->getChildNodes());
     close(FILE);
   } else {
     croak("!*EROR*! No filename could be found to write() to!\n");
   }
 }
+
+sub toString { # write out an XML file to disk from a Tidy object
+  my $self = shift(); my $root;
+  my $xplc = shift(); my $xmls = $xmld;
+  if(defined($xplc) && $xplc && $xplc =~ /^[-_]?(xplc$|xpath_loc)/) {
+    $xplc = shift() || undef;
+  }
+  if(defined($self)) {
+    if(defined($xplc) && $xplc) {
+         $root = XML::XPath::Node::Element->new();
+      my($rtnd)= $self->findnodes($xplc);
+         $root->appendChild($rtnd);
+    } else {
+        ($root)= $self->findnodes('/');
+    }
+    $xmls .= $_->toString() . "\n" foreach($root->getChildNodes());
+  } else {
+    croak("!*EROR*! No XML::Tidy could be found for toString()!\n");
+  }
+  return($xmls);
+}
+
+sub AUTOLOAD { # methods (created as necessary)
+  no strict 'refs';
+  my $self = shift();
+  if($AUTOLOAD =~ /.*::(new|create)?([eactpn])/i) { # createNode Wrappers
+    my $node = lc($2);
+    *{$AUTOLOAD} = sub { # add called sub to function table
+      my $self = shift();
+      if   ($node eq 'e') { return(XML::XPath::Node::Element  ->new(@_)); }
+      elsif($node eq 'a') { return(XML::XPath::Node::Attribute->new(@_)); }
+      elsif($node eq 'c') { return(XML::XPath::Node::Comment  ->new(@_)); }
+      elsif($node eq 't') { return(XML::XPath::Node::Text     ->new(@_)); }
+      elsif($node eq 'p') { return(XML::XPath::Node::PI       ->new(@_)); }
+      elsif($node eq 'n') { return(XML::XPath::Node::Namespace->new(@_)); }
+    };
+    return($self->$AUTOLOAD(@_));
+  } else {
+    croak "No such method: $AUTOLOAD\n";
+  }
+}
+
+sub DESTROY { } # do nothing but define in case && to calm test warnings
 
 127;

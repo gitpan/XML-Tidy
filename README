@@ -8,8 +8,8 @@ XML::Tidy - tidy indenting of XML documents
 
 VERSION
 
-This documentation refers to version 1.2.4CCJW4G of 
-XML::Tidy, which was released on Sun Dec 12 19:32:04:16 2004.
+This documentation refers to version 1.2.51HM2ae of 
+XML::Tidy, which was released on Mon Jan 17 22:02:36:40 2005.
 
 SYNOPSIS
 
@@ -31,6 +31,16 @@ L<XML::XPath>) to tidy mixed-content (ie. non-data) text node
 indenting.
 
 2DO
+
+- add tests for XML::XPath::Node wrappers
+
+- add tests for toString
+
+- fix compress() comment bug
+
+- add tests for compress() && expand()
+
+- imp namespace option in compress()
 
 - mk tidy keep doc order when duping attz, namespaces,
           (hopefully someday PIs) into temp $docu && $tnod
@@ -69,10 +79,8 @@ strip()
 The strip() member function searches the Tidy object for all
 mixed-content (ie. non-data) text nodes && empties them out.
 This will basically unformat any markup indenting.  strip() is
-probably barely useful by itself but it is needed by tidy() &&
-is exposed as a method in case it comes in handy for other uses.
-It does make XML files smaller (sometimes significantly so) if
-you don't care about human readability.
+used by compress() && tidy() but it is exposed because it could be
+worthwhile by itself.
 
 tidy()
 
@@ -100,6 +108,49 @@ commented out of tidy().  This means that tidy() unfortunately
 removes processing instructions from files it operates on.  I hope
 this shortcoming can be repaired in the near future.  tidy() also
 disturbs some XML escapes in whatever ways L<XML::XPath> does.
+
+compress()
+
+The compress() member function calls strip() on the Tidy object
+then creates comments ahead of the root element which contain the
+names of elements && attributes as they occurred with their
+respective element && attribute names represented as just an index
+throughout the document.
+
+compress() can accept a parameter describing which node types to
+attempt to shrink down as abbreviations.  This parameter should be
+a string of just the first letters of each node type you wish to
+include as in the following mapping:
+
+  e = elements
+  a = attribute keys
+  v = attribute values *EXPERIMENTAL*
+  t = text      nodes  *EXPERIMENTAL*
+  c = comment   nodes  *EXPERIMENTAL*
+  n = namespace nodes  *not-yet-implemented*
+
+Attribute values ('v') && text nodes ('t') both seem to work fine as
+they are tokenized.  I have some bugs in the comment node compression
+which I haven't been able to find yet so that one should be avoided
+for now.  Since these three node types ('vtc') all require tokenization,
+they are not included in default compression ('ea').  An example call
+which includes values && text would be:
+
+  $tidy_obj->compress('eatv');
+
+The original document structure (ie. node hierarchy) is preserved.
+compress() significantly reduces the file size of most XML documents
+for when size matters more than immediate human readability.
+expand() performs the opposite conversion.
+
+expand()
+
+The expand() member function reads any XML::Tidy::compress comments
+from the Tidy object && uses them to reconstruct the document
+that was passed to compress().  These utilities together seem like
+a mildly useful way to tidy XML documents so they earned inclusion
+in this module.  compress() && expand() should be considered
+experimental.
 
 prune()
 
@@ -130,9 +181,89 @@ write() can also take a secondary parameter which specifies an XPath
 location to be written out as the new root element instead of the
 Tidy object's root.  Only the first matching element is written.
 
+toString()
+
+The toString() member function is almost identical to write() except
+that it takes no parameters && simply returns the equivalent XML
+string as a scalar.  It is a little weird because normally only
+XML::XPath::Node objects have a toString member but I figure it makes
+sense to extend the same syntax to the parent object as well since
+it is a useful option.
+
+createNode Wrappers
+
+The following are just aliases to Node constructors.  They'll work with
+just the unique portion of the node type as the member function name.
+
+e() or el() or elem() or createElement()
+
+wrapper for XML::XPath::Node::Element->new()
+
+a() or at() or attr() or createAttribute()
+
+wrapper for XML::XPath::Node::Attribute->new()
+
+c() or cm() or cmnt() or createComment()
+
+wrapper for XML::XPath::Node::Comment->new()
+
+t() or tx() or text() or createTextNode()
+
+wrapper for XML::XPath::Node::Text->new()
+
+p() or pi() or proc() or createProcessingInstruction()
+
+wrapper for XML::XPath::Node::PI->new()
+
+n() or ns() or nspc() or createNamespace()
+
+wrapper for XML::XPath::Node::Namespace->new()
+
+EXPORTED CONSTANTS
+
+XML::Tidy also exports the same node constants as L<XML::XPath::Node>
+(which correspond to DOM values).  These include:
+
+  UNKNOWN_NODE
+  ELEMENT_NODE
+  ATTRIBUTE_NODE
+  TEXT_NODE
+  CDATA_SECTION_NODE
+  ENTITY_REFERENCE_NODE
+  ENTITY_NODE
+  PROCESSING_INSTRUCTION_NODE
+  COMMENT_NODE
+  DOCUMENT_NODE
+  DOCUMENT_TYPE_NODE
+  DOCUMENT_FRAGMENT_NODE
+  NOTATION_NODE
+  ELEMENT_DECL_NODE
+  ATT_DEF_NODE
+  XML_DECL_NODE
+  ATTLIST_DECL_NODE
+  NAMESPACE_NODE
+
+XML::Tidy also exports:
+
+  STANDARD_XML_DECL
+
+which returns a reasonable default XML declaration string.
+
 CHANGES
 
 Revision history for Perl extension XML::Tidy:
+
+- 1.2.51HM2ae  Mon Jan 17 22:02:36:40 2005
+
+* added compress() && expand()
+
+* added toString()
+
+- 1.2.4CKBHxt  Mon Dec 20 11:17:59:55 2004
+
+* added exporting of XML::XPath::Node (DOM) constants
+
+* added node object creation wrappers (like LibXML)
 
 - 1.2.4CCJW4G  Sun Dec 12 19:32:04:16 2004
 
