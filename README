@@ -1,0 +1,153 @@
+!/usr/bin/perl -w
+ 4C3HOH1 - XML::Tidy.pm created by Pip Stuart <Pip@CPAN.Org>
+   to tidy XML documents as parsed XML::XPath objects.
+
+NAME
+
+XML::Tidy - tidy indenting of XML documents
+
+VERSION
+
+This documentation refers to version 1.0.4C8K1Ah of 
+XML::Tidy, which was released on Wed Dec  8 20:01:10:43 2004.
+
+SYNOPSIS
+
+  use XML::Tidy;
+
+  # create new   XML::Tidy object from         MainFile.xml
+  my $tidy_obj = XML::Tidy->new('filename' => 'MainFile.xml');
+
+  # Tidy up the indenting
+     $tidy_obj->tidy();
+
+  # Write out changes back to MainFile.xml
+     $tidy_obj->write();
+
+DESCRIPTION
+
+This module creates XML document objects (with inheritance from
+L<XML::XPath>) to tidy mixed-content (ie. non-data) text node
+indenting.
+
+2DO
+
+- mk tidy keep order when duping stuff into temp $docu && $tnod
+
+-     What else does Tidy need?
+
+USAGE
+
+new()
+
+This is the standard Tidy object constructor.  It can take
+the same parameters as an L<XML::XPath> object constructor to
+initialize the XML document object.  These can be any one of:
+
+  'filename' => 'SomeFile.xml'
+  'xml'      => $variable_which_holds_a_bunch_of_XML_data
+  'ioref'    => $file_InputOutput_reference
+  'context'  => $existing_node_at_specified_context_to_become_new_obj
+
+reload()
+
+The reload() member function causes the latest data contained in
+a Tidy object to be re-parsed which re-indexes all nodes.
+This can be necessary after modifications have been made to nodes
+which impact the tree node hierarchy because L<XML::XPath>'s find()
+member preserves state info which can get out-of-sync.  reload() is
+probably rarely useful by itself but it is needed by reload() && is
+exposed as a method in case it comes in handy for other uses.
+
+strip()
+
+The strip() member function searches the Tidy object for all
+mixed-content (ie. non-data) text nodes && empties them out.
+This will basically unformat any markup indenting.  strip() is
+probably barely useful by itself but it is needed by tidy() &&
+is exposed as a method in case it comes in handy for other uses.
+
+tidy()
+
+The tidy() member function can take two optional parameters.  The
+first parameter should either be 'spaces' or 'tabs' (or alternately
+' ' or "\t") && the second parameter should be the number of times
+to repeat the indent character per indent level.  Some examples:
+
+  # Tidy up the indenting with two  (2) spaces per indent level
+     $tidy_obj->tidy();
+
+  # Tidy up the indenting with four (4) spaces per indent level
+     $tidy_obj->tidy('spaces', 4);
+
+  # Tidy up the indenting with one  (1) tab    per indent level
+     $tidy_obj->tidy('tabs');
+
+  # Tidy up the indenting with two  (2) tabs   per indent level
+     $tidy_obj->tidy('tabs', 2);
+
+The default behavior is to use two (2) spaces for each indent level.
+The Tidy object gets all mixed-content (ie. non-data) text nodes
+reformatted to appropriate indent levels according to tree nesting
+depth.
+
+NOTE: There seems to be a bug in L<XML::XPath> which does not allow
+finding XML processing instructions (PI) properly so they have been
+commented out of tidy().  This means that (to great dismay) tidy()
+removes processing instructions from files it operates on.  I hope
+this shortcoming can be repaired in the near future.  tidy() also
+disturbs some XML escapes in the same ways that L<XML::XPath> does.
+
+write()
+
+The write() member function can take an optional filename parameter
+to write out any changes to the Tidy object.  If no parameters
+are given, write() overwrites the original XML document file (if
+a 'filename' parameter was given to the constructor).
+
+write() will croak() if no filename can be found to write to.
+
+CHANGES
+
+Revision history for Perl extension XML::Tidy:
+
+- 1.0.4C8K1Ah  Wed Dec  8 20:01:10:43 2004
+
+* inherited from XPath so that those methods can be called directly
+
+* original version (separating Tidy.pm from Merge.pm)
+
+INSTALL
+
+From the command shell, please run:
+
+    `perl -MCPAN -e "install XML::Tidy"`
+
+or uncompress the package && run the standard:
+
+    `perl Makefile.PL; make; make test; make install`
+
+FILES
+
+XML::Tidy requires:
+
+L<Carp>                to allow errors to croak() from calling sub
+
+L<XML::XPath>          to use XPath statements to query && update XML
+
+L<XML::XPath::XMLParser> to parse XML documents into XPath objects
+
+LICENSE
+
+Most source code should be Free!
+  Code I have lawful authority over is && shall be!
+Copyright: (c) 2004, Pip Stuart.
+Copyleft : This software is licensed under the GNU General Public
+  License (version 2), && as such comes with NO WARRANTY.  Please
+  consult the Free Software Foundation (http://FSF.Org) for
+  important information about your freedom.
+
+AUTHOR
+
+Pip Stuart <Pip@CPAN.Org>
+
