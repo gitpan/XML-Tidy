@@ -8,8 +8,8 @@ XML::Tidy - tidy indenting of XML documents
 
 =head1 VERSION
 
-This documentation refers to version 1.0.4C8K1Ah of 
-XML::Tidy, which was released on Wed Dec  8 20:01:10:43 2004.
+This documentation refers to version 1.0.4C9JpoP of 
+XML::Tidy, which was released on Thu Dec  9 19:51:50:25 2004.
 
 =head1 SYNOPSIS
 
@@ -34,7 +34,10 @@ indenting.
 
 =over 2
 
-=item - mk tidy keep order when duping stuff into temp $docu && $tnod
+=item - mk 03prune.t && tst write(flnm, xplc)
+
+=item - mk tidy keep doc order when duping attz, namespaces,
+          (hopefully someday PIs) into temp $docu && $tnod
 
 =item -     What else does Tidy need?
 
@@ -102,6 +105,18 @@ removes processing instructions from files it operates on.  I hope
 this shortcoming can be repaired in the near future.  tidy() also
 disturbs some XML escapes in the same ways that L<XML::XPath> does.
 
+=head2 prune()
+
+The prune() member function takes an XPath location to remove (along
+with all attributes && child nodes) from the Tidy object.  For
+example, to remove all comments:
+
+  $tidy_obj->prune('//comment()');
+
+or to remove the third baz:
+
+  $tidy_obj->prune('/foo/bar/baz[3]');
+
 =head2 write()
 
 The write() member function can take an optional filename parameter
@@ -111,11 +126,21 @@ a 'filename' parameter was given to the constructor).
 
 write() will croak() if no filename can be found to write to.
 
+write() can also take a secondary parameter which specifies an XPath
+location to be written out as the new root element instead of the
+Tidy object's root.  Only the first matching element is written.
+
 =head1 CHANGES
 
 Revision history for Perl extension XML::Tidy:
 
 =over 4
+
+=item - 1.0.4C9JpoP  Thu Dec  9 19:51:50:25 2004
+
+* added xplc option to write()
+
+* added prune()
 
 =item - 1.0.4C8K1Ah  Wed Dec  8 20:01:10:43 2004
 
@@ -168,7 +193,7 @@ require      XML::XPath;
 use base qw( XML::XPath );
 use Carp;
 use XML::XPath::XMLParser;
-our $VERSION     = '1.0.4C8K1Ah'; # major . minor . PipTimeStamp
+our $VERSION     = '1.0.4C9JpoP'; # major . minor . PipTimeStamp
 our $PTVR        = $VERSION; $PTVR =~ s/^\d+\.\d+\.//; # strip major and minor
 # Please see `perldoc Time::PT` for an explanation of $PTVR
 
@@ -292,10 +317,30 @@ sub _rectidy { # recursively tidy up indent formatting of elements
   return($tnod);
 }
 
-sub write {
-  my $self = shift(); my $flnm = shift() || $self->get_filename();
+sub prune { # remove a section of the tree at the xpath location parameter
+  my $self = shift(); my $xplc = shift() || return(); # can't prune root node
+  if(defined($self) && defined($xplc) && length($xplc) && $xplc ne '/') {
+    $self->reload(); # mk sure all nodes && internal XPath indexing is up2date
+    foreach($self->findnodes($xplc)) {
+      print "Pruning:$xplc\n" if($DBUG);
+      my $prnt = $_->getParentNode();
+      $prnt->removeChild($_) if(defined($prnt));
+    }
+  }
+}
+
+sub write { # write out an XML file to disk from a Tidy object
+  my $self = shift(); my $root;
+  my $flnm = shift() || $self->get_filename();
+  my $xplc = shift() || undef;
   if(defined($self) && defined($flnm)) {
-    my($root)= $self->findnodes('/');
+    if(defined($xplc) && $xplc) {
+         $root = XML::XPath::Node::Element->new();
+      my($rtnd)= $self->findnodes($xplc);
+         $root->appendChild($rtnd);
+    } else {
+        ($root)= $self->findnodes('/');
+    }
     my @kids = $root->getChildNodes();
     open( FILE, ">$flnm");
     print FILE $xmlh;

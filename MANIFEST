@@ -1,8 +1,9 @@
 Tidy.pm
 MANIFEST
-t/00sml.t
-t/01med.t
-t/02lrg.t
+t/00small.t
+t/01medium.t
+t/02large.t
+t/03prune.t
 bin/xmltidy
 MANIFEST.SKIP
 README

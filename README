@@ -8,8 +8,8 @@ XML::Tidy - tidy indenting of XML documents
 
 VERSION
 
-This documentation refers to version 1.0.4C8K1Ah of 
-XML::Tidy, which was released on Wed Dec  8 20:01:10:43 2004.
+This documentation refers to version 1.0.4C9JpoP of 
+XML::Tidy, which was released on Thu Dec  9 19:51:50:25 2004.
 
 SYNOPSIS
 
@@ -32,7 +32,10 @@ indenting.
 
 2DO
 
-- mk tidy keep order when duping stuff into temp $docu && $tnod
+- mk 03prune.t && tst write(flnm, xplc)
+
+- mk tidy keep doc order when duping attz, namespaces,
+          (hopefully someday PIs) into temp $docu && $tnod
 
 -     What else does Tidy need?
 
@@ -98,6 +101,18 @@ removes processing instructions from files it operates on.  I hope
 this shortcoming can be repaired in the near future.  tidy() also
 disturbs some XML escapes in the same ways that L<XML::XPath> does.
 
+prune()
+
+The prune() member function takes an XPath location to remove (along
+with all attributes && child nodes) from the Tidy object.  For
+example, to remove all comments:
+
+  $tidy_obj->prune('//comment()');
+
+or to remove the third baz:
+
+  $tidy_obj->prune('/foo/bar/baz[3]');
+
 write()
 
 The write() member function can take an optional filename parameter
@@ -107,9 +122,19 @@ a 'filename' parameter was given to the constructor).
 
 write() will croak() if no filename can be found to write to.
 
+write() can also take a secondary parameter which specifies an XPath
+location to be written out as the new root element instead of the
+Tidy object's root.  Only the first matching element is written.
+
 CHANGES
 
 Revision history for Perl extension XML::Tidy:
+
+- 1.0.4C9JpoP  Thu Dec  9 19:51:50:25 2004
+
+* added xplc option to write()
+
+* added prune()
 
 - 1.0.4C8K1Ah  Wed Dec  8 20:01:10:43 2004
 

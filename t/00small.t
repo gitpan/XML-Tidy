@@ -6,8 +6,8 @@ use XML::Tidy;
 my $tobj; ok(1);
 
 sub diff { # test for difference between memory Tidy objects
-  my $tidy = shift() || return(2);
-  my $tstd = shift();   return(3) unless(defined($tstf) && $tstf);
+  my $tidy = shift() || return(0);
+  my $tstd = shift();   return(0) unless(defined($tstd) && $tstd);
   my($root)= $tidy->findnodes('/');
   my $xdat = qq(<?xml version="1.0" encoding="utf-8"?>\n);
   $xdat .= $_->toString() foreach($root->getChildNodes());
