@@ -8,8 +8,8 @@ XML::Tidy - tidy indenting of XML documents
 
 =head1 VERSION
 
-This documentation refers to version 1.0.4CAJna1 of 
-XML::Tidy, which was released on Fri Dec 10 19:49:36:01 2004.
+This documentation refers to version 1.2.4CCJW4G of 
+XML::Tidy, which was released on Sun Dec 12 19:32:04:16 2004.
 
 =head1 SYNOPSIS
 
@@ -36,6 +36,9 @@ indenting.
 
 =item - mk tidy keep doc order when duping attz, namespaces,
           (hopefully someday PIs) into temp $docu && $tnod
+
+=item - fix reload() from messing up unicode escaped &XYZ; components like
+          Copyright &#xA9; -> © && Registered &#xAE; -> ®
 
 =item -     What else does Tidy need?
 
@@ -84,20 +87,11 @@ examples:
   # Tidy up indenting with default two  (2) spaces per indent level
      $tidy_obj->tidy();
 
-  # Tidy up indenting with         one  (1) space  per indent level
-     $tidy_obj->tidy(' ');
-
   # Tidy up indenting with         four (4) spaces per indent level
      $tidy_obj->tidy('    ');
 
   # Tidy up indenting with         one  (1) tab    per indent level
      $tidy_obj->tidy("\t");
-
-  # Tidy up indenting with         two  (2) tabs   per indent level
-     $tidy_obj->tidy("\t\t");
-
-  # Ruin KAKA indenting with some KAKA non-whitespace string!  KAKA!
-     $tidy_obj->tidy("KA"); # this does damage so backup XML first
 
 The default behavior is to use two (2) spaces (ie. '  ') for each
 indent level.  The Tidy object gets all mixed-content (ie. non-data)
@@ -146,6 +140,10 @@ Revision history for Perl extension XML::Tidy:
 
 =over 4
 
+=item - 1.2.4CCJW4G  Sun Dec 12 19:32:04:16 2004
+
+* added optional 'xpath_loc' => to prune()
+
 =item - 1.0.4CAJna1  Fri Dec 10 19:49:36:01 2004
 
 * added optional 'filename' => to write()
@@ -184,9 +182,9 @@ or uncompress the package && run the standard:
 
 XML::Tidy requires:
 
-L<Carp>                to allow errors to croak() from calling sub
+L<Carp>                  to allow errors to croak() from calling sub
 
-L<XML::XPath>          to use XPath statements to query && update XML
+L<XML::XPath>            to use XPath statements to query && update XML
 
 L<XML::XPath::XMLParser> to parse XML documents into XPath objects
 
@@ -213,9 +211,9 @@ require      XML::XPath;
 use base qw( XML::XPath );
 use Carp;
 use XML::XPath::XMLParser;
-our $VERSION     = '1.0.4CAJna1'; # major . minor . PipTimeStamp
+our $VERSION     = '1.2.4CCJW4G'; # major . minor . PipTimeStamp
 our $PTVR        = $VERSION; $PTVR =~ s/^\d+\.\d+\.//; # strip major and minor
-# Please see `perldoc Time::PT` for an explanation of $PTVR
+# Please see `perldoc Time::PT` for an explanation of $PTVR.
 
 my $DBUG = 0;
 
@@ -331,6 +329,9 @@ sub _rectidy { # recursively tidy up indent formatting of elements
 
 sub prune { # remove a section of the tree at the xpath location parameter
   my $self = shift(); my $xplc = shift() || return(); # can't prune root node
+  if(defined($xplc) && $xplc && $xplc =~ /^[-_]?(xplc$|xpath_loc)/) {
+     $xplc = shift() || undef;
+  }
   if(defined($self) && defined($xplc) && length($xplc) && $xplc ne '/') {
     $self->reload(); # update all nodes && internal XPath indexing before find
     foreach($self->findnodes($xplc)) {
@@ -342,14 +343,22 @@ sub prune { # remove a section of the tree at the xpath location parameter
 }
 
 sub write { # write out an XML file to disk from a Tidy object
-  my $self = shift(); my $root;
+  my $self = shift(); my $root; my $xplc;
   my $flnm = shift() || $self->get_filename();
-  if(defined($flnm) && $flnm && $flnm =~ /^[-_]?(flnm|filename)$/) {
-     $flnm = shift() || $self->get_filename();
+  if(defined($flnm) && $flnm) {
+    if($flnm =~ /^[-_]?(xplc$|xpath_loc)/) {
+      $xplc = shift() || undef;
+      $flnm = shift() || $self->get_filename();
+    }
+    if($flnm =~ /^[-_]?(flnm|filename)$/) {
+      $flnm = shift() || $self->get_filename();
+    }
   }
-  my $xplc = shift() || undef;
+  unless(defined($xplc) && $xplc) {
+    $xplc = shift() || undef;
+  }
   if(defined($xplc) && $xplc && $xplc =~ /^[-_]?(xplc$|xpath_loc)/) {
-     $xplc = shift() || undef;
+    $xplc = shift() || undef;
   }
   if(defined($self) && defined($flnm)) {
     if(defined($xplc) && $xplc) {

@@ -8,8 +8,8 @@ XML::Tidy - tidy indenting of XML documents
 
 VERSION
 
-This documentation refers to version 1.0.4CAJna1 of 
-XML::Tidy, which was released on Fri Dec 10 19:49:36:01 2004.
+This documentation refers to version 1.2.4CCJW4G of 
+XML::Tidy, which was released on Sun Dec 12 19:32:04:16 2004.
 
 SYNOPSIS
 
@@ -34,6 +34,9 @@ indenting.
 
 - mk tidy keep doc order when duping attz, namespaces,
           (hopefully someday PIs) into temp $docu && $tnod
+
+- fix reload() from messing up unicode escaped &XYZ; components like
+          Copyright &#xA9; -> © && Registered &#xAE; -> ®
 
 -     What else does Tidy need?
 
@@ -80,20 +83,11 @@ examples:
   # Tidy up indenting with default two  (2) spaces per indent level
      $tidy_obj->tidy();
 
-  # Tidy up indenting with         one  (1) space  per indent level
-     $tidy_obj->tidy(' ');
-
   # Tidy up indenting with         four (4) spaces per indent level
      $tidy_obj->tidy('    ');
 
   # Tidy up indenting with         one  (1) tab    per indent level
      $tidy_obj->tidy("\t");
-
-  # Tidy up indenting with         two  (2) tabs   per indent level
-     $tidy_obj->tidy("\t\t");
-
-  # Ruin KAKA indenting with some KAKA non-whitespace string!  KAKA!
-     $tidy_obj->tidy("KA"); # this does damage so backup XML first
 
 The default behavior is to use two (2) spaces (ie. '  ') for each
 indent level.  The Tidy object gets all mixed-content (ie. non-data)
@@ -140,6 +134,10 @@ CHANGES
 
 Revision history for Perl extension XML::Tidy:
 
+- 1.2.4CCJW4G  Sun Dec 12 19:32:04:16 2004
+
+* added optional 'xpath_loc' => to prune()
+
 - 1.0.4CAJna1  Fri Dec 10 19:49:36:01 2004
 
 * added optional 'filename' => to write()
@@ -176,9 +174,9 @@ FILES
 
 XML::Tidy requires:
 
-L<Carp>                to allow errors to croak() from calling sub
+L<Carp>                  to allow errors to croak() from calling sub
 
-L<XML::XPath>          to use XPath statements to query && update XML
+L<XML::XPath>            to use XPath statements to query && update XML
 
 L<XML::XPath::XMLParser> to parse XML documents into XPath objects
 
