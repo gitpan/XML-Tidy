@@ -451,6 +451,6 @@ $tobj->tidy();
 ok(defined($tobj));
 ok(diff($tobj, $tstK));
 
-$tobj->tidy('tabs');
+$tobj->tidy("\t");
 ok(defined($tobj));
 ok(diff($tobj, $tstL));

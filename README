@@ -8,8 +8,8 @@ XML::Tidy - tidy indenting of XML documents
 
 VERSION
 
-This documentation refers to version 1.0.4C9JpoP of 
-XML::Tidy, which was released on Thu Dec  9 19:51:50:25 2004.
+This documentation refers to version 1.0.4CAAf5B of 
+XML::Tidy, which was released on Fri Dec 10 10:41:05:11 2004.
 
 SYNOPSIS
 
@@ -31,8 +31,6 @@ L<XML::XPath>) to tidy mixed-content (ie. non-data) text node
 indenting.
 
 2DO
-
-- mk 03prune.t && tst write(flnm, xplc)
 
 - mk tidy keep doc order when duping attz, namespaces,
           (hopefully someday PIs) into temp $docu && $tnod
@@ -59,8 +57,9 @@ a Tidy object to be re-parsed which re-indexes all nodes.
 This can be necessary after modifications have been made to nodes
 which impact the tree node hierarchy because L<XML::XPath>'s find()
 member preserves state info which can get out-of-sync.  reload() is
-probably rarely useful by itself but it is needed by reload() && is
-exposed as a method in case it comes in handy for other uses.
+probably rarely useful by itself but it is needed by strip() &&
+prune() so it is exposed as a method in case it comes in handy for
+other uses.
 
 strip()
 
@@ -69,37 +68,44 @@ mixed-content (ie. non-data) text nodes && empties them out.
 This will basically unformat any markup indenting.  strip() is
 probably barely useful by itself but it is needed by tidy() &&
 is exposed as a method in case it comes in handy for other uses.
+It does make XML files smaller (sometimes significantly so) if
+you don't care about human readability.
 
 tidy()
 
-The tidy() member function can take two optional parameters.  The
-first parameter should either be 'spaces' or 'tabs' (or alternately
-' ' or "\t") && the second parameter should be the number of times
-to repeat the indent character per indent level.  Some examples:
+The tidy() member function can take a single optional parameter as
+the string that should be inserted for each indent level.  Some
+examples:
 
-  # Tidy up the indenting with two  (2) spaces per indent level
+  # Tidy up indenting with default two  (2) spaces per indent level
      $tidy_obj->tidy();
 
-  # Tidy up the indenting with four (4) spaces per indent level
-     $tidy_obj->tidy('spaces', 4);
+  # Tidy up indenting with         one  (1) space  per indent level
+     $tidy_obj->tidy(' ');
 
-  # Tidy up the indenting with one  (1) tab    per indent level
-     $tidy_obj->tidy('tabs');
+  # Tidy up indenting with         four (4) spaces per indent level
+     $tidy_obj->tidy('    ');
 
-  # Tidy up the indenting with two  (2) tabs   per indent level
-     $tidy_obj->tidy('tabs', 2);
+  # Tidy up indenting with         one  (1) tab    per indent level
+     $tidy_obj->tidy("\t");
 
-The default behavior is to use two (2) spaces for each indent level.
-The Tidy object gets all mixed-content (ie. non-data) text nodes
-reformatted to appropriate indent levels according to tree nesting
-depth.
+  # Tidy up indenting with         two  (2) tabs   per indent level
+     $tidy_obj->tidy("\t\t");
+
+  # Ruin KAKA indenting with some KAKA non-whitespace string!  KAKA!
+     $tidy_obj->tidy("KA"); # this does damage so backup XML first
+
+The default behavior is to use two (2) spaces (ie. '  ') for each
+indent level.  The Tidy object gets all mixed-content (ie. non-data)
+text nodes reformatted to appropriate indent levels according to tree
+nesting depth.
 
 NOTE: There seems to be a bug in L<XML::XPath> which does not allow
-finding XML processing instructions (PI) properly so they have been
-commented out of tidy().  This means that (to great dismay) tidy()
+finding XML processing instructions (PIs) properly so they have been
+commented out of tidy().  This means that tidy() unfortunately
 removes processing instructions from files it operates on.  I hope
 this shortcoming can be repaired in the near future.  tidy() also
-disturbs some XML escapes in the same ways that L<XML::XPath> does.
+disturbs some XML escapes in whatever ways L<XML::XPath> does.
 
 prune()
 
@@ -109,9 +115,13 @@ example, to remove all comments:
 
   $tidy_obj->prune('//comment()');
 
-or to remove the third baz:
+or to remove the third baz (XPath indexing is 1-based):
 
   $tidy_obj->prune('/foo/bar/baz[3]');
+
+Pruning your XML tree is a form of tidying too so it snuck in here. =)
+It seems L<XML::XPath> objects are dramatically more useful when they
+all have access to this class of additional member functions.
 
 write()
 
@@ -129,6 +139,12 @@ Tidy object's root.  Only the first matching element is written.
 CHANGES
 
 Revision history for Perl extension XML::Tidy:
+
+- 1.0.4CAAf5B  Fri Dec 10 10:41:05:11 2004
+
+* removed 2nd param from tidy() so that 1st param is just indent string
+
+* fixed pod errors
 
 - 1.0.4C9JpoP  Thu Dec  9 19:51:50:25 2004
 

@@ -8,8 +8,8 @@ XML::Tidy - tidy indenting of XML documents
 
 =head1 VERSION
 
-This documentation refers to version 1.0.4C9JpoP of 
-XML::Tidy, which was released on Thu Dec  9 19:51:50:25 2004.
+This documentation refers to version 1.0.4CAAf5B of 
+XML::Tidy, which was released on Fri Dec 10 10:41:05:11 2004.
 
 =head1 SYNOPSIS
 
@@ -33,8 +33,6 @@ indenting.
 =head1 2DO
 
 =over 2
-
-=item - mk 03prune.t && tst write(flnm, xplc)
 
 =item - mk tidy keep doc order when duping attz, namespaces,
           (hopefully someday PIs) into temp $docu && $tnod
@@ -63,8 +61,9 @@ a Tidy object to be re-parsed which re-indexes all nodes.
 This can be necessary after modifications have been made to nodes
 which impact the tree node hierarchy because L<XML::XPath>'s find()
 member preserves state info which can get out-of-sync.  reload() is
-probably rarely useful by itself but it is needed by reload() && is
-exposed as a method in case it comes in handy for other uses.
+probably rarely useful by itself but it is needed by strip() &&
+prune() so it is exposed as a method in case it comes in handy for
+other uses.
 
 =head2 strip()
 
@@ -73,37 +72,44 @@ mixed-content (ie. non-data) text nodes && empties them out.
 This will basically unformat any markup indenting.  strip() is
 probably barely useful by itself but it is needed by tidy() &&
 is exposed as a method in case it comes in handy for other uses.
+It does make XML files smaller (sometimes significantly so) if
+you don't care about human readability.
 
 =head2 tidy()
 
-The tidy() member function can take two optional parameters.  The
-first parameter should either be 'spaces' or 'tabs' (or alternately
-' ' or "\t") && the second parameter should be the number of times
-to repeat the indent character per indent level.  Some examples:
+The tidy() member function can take a single optional parameter as
+the string that should be inserted for each indent level.  Some
+examples:
 
-  # Tidy up the indenting with two  (2) spaces per indent level
+  # Tidy up indenting with default two  (2) spaces per indent level
      $tidy_obj->tidy();
 
-  # Tidy up the indenting with four (4) spaces per indent level
-     $tidy_obj->tidy('spaces', 4);
+  # Tidy up indenting with         one  (1) space  per indent level
+     $tidy_obj->tidy(' ');
 
-  # Tidy up the indenting with one  (1) tab    per indent level
-     $tidy_obj->tidy('tabs');
+  # Tidy up indenting with         four (4) spaces per indent level
+     $tidy_obj->tidy('    ');
 
-  # Tidy up the indenting with two  (2) tabs   per indent level
-     $tidy_obj->tidy('tabs', 2);
+  # Tidy up indenting with         one  (1) tab    per indent level
+     $tidy_obj->tidy("\t");
 
-The default behavior is to use two (2) spaces for each indent level.
-The Tidy object gets all mixed-content (ie. non-data) text nodes
-reformatted to appropriate indent levels according to tree nesting
-depth.
+  # Tidy up indenting with         two  (2) tabs   per indent level
+     $tidy_obj->tidy("\t\t");
+
+  # Ruin KAKA indenting with some KAKA non-whitespace string!  KAKA!
+     $tidy_obj->tidy("KA"); # this does damage so backup XML first
+
+The default behavior is to use two (2) spaces (ie. '  ') for each
+indent level.  The Tidy object gets all mixed-content (ie. non-data)
+text nodes reformatted to appropriate indent levels according to tree
+nesting depth.
 
 NOTE: There seems to be a bug in L<XML::XPath> which does not allow
-finding XML processing instructions (PI) properly so they have been
-commented out of tidy().  This means that (to great dismay) tidy()
+finding XML processing instructions (PIs) properly so they have been
+commented out of tidy().  This means that tidy() unfortunately
 removes processing instructions from files it operates on.  I hope
 this shortcoming can be repaired in the near future.  tidy() also
-disturbs some XML escapes in the same ways that L<XML::XPath> does.
+disturbs some XML escapes in whatever ways L<XML::XPath> does.
 
 =head2 prune()
 
@@ -113,9 +119,13 @@ example, to remove all comments:
 
   $tidy_obj->prune('//comment()');
 
-or to remove the third baz:
+or to remove the third baz (XPath indexing is 1-based):
 
   $tidy_obj->prune('/foo/bar/baz[3]');
+
+Pruning your XML tree is a form of tidying too so it snuck in here. =)
+It seems L<XML::XPath> objects are dramatically more useful when they
+all have access to this class of additional member functions.
 
 =head2 write()
 
@@ -135,6 +145,12 @@ Tidy object's root.  Only the first matching element is written.
 Revision history for Perl extension XML::Tidy:
 
 =over 4
+
+=item - 1.0.4CAAf5B  Fri Dec 10 10:41:05:11 2004
+
+* removed 2nd param from tidy() so that 1st param is just indent string
+
+* fixed pod errors
 
 =item - 1.0.4C9JpoP  Thu Dec  9 19:51:50:25 2004
 
@@ -193,7 +209,7 @@ require      XML::XPath;
 use base qw( XML::XPath );
 use Carp;
 use XML::XPath::XMLParser;
-our $VERSION     = '1.0.4C9JpoP'; # major . minor . PipTimeStamp
+our $VERSION     = '1.0.4CAAf5B'; # major . minor . PipTimeStamp
 our $PTVR        = $VERSION; $PTVR =~ s/^\d+\.\d+\.//; # strip major and minor
 # Please see `perldoc Time::PT` for an explanation of $PTVR
 
@@ -240,19 +256,11 @@ sub strip { # strips out all text nodes from any mixed content
   }
 }
 
-# tidy XML indenting where indent type is either 'spaces' or 'tabs' ($sort) &&
-#   indent repeat is how many indent type characters should be used per indent
+# tidy XML indenting with a certain indent string
 sub tidy {
-  my $self = shift(); my $sort = shift(); my $irep = shift();
-  # setup Spaces OR Tabs && Indent REPeat values with good defaults
-  if(defined($sort) && length($sort)) {
-    if   ($sort =~ /^(s| )/i ) { $sort = ' ';  } # spaces
-    elsif($sort =~ /^(t|\t)/i) { $sort = "\t"; } # tabs
-    unless(defined($irep) && length($irep)) {
-      if($sort eq ' ') { $irep = 2; }
-      else             { $irep = 1; }
-    }
-  } else { $sort = ' '; $irep = 2; }
+  my $self = shift(); my $ndnt = shift() || '  ';
+  $ndnt = "\t" if($ndnt =~ /tab/i ); # allow some indent_type descriptions
+  $ndnt = '  ' if($ndnt =~ /spac/i);
   $self->strip(); # strips all object's text nodes from mixed content
   # now insert new nodes with newlines && indenting by tree nesting depth
   my $dpth = 0; # keep track of element nest depth
@@ -269,7 +277,7 @@ sub tidy {
     my($root)= $self->findnodes('/*');
     print "RT  Found new      elem:" . $root->getName() . "\n" if($DBUG);
     if($root->getChildNodes()) { # recursively tidy children
-      $root = $self->_rectidy($root, ($dpth + 1), $sort, $irep);
+      $root = $self->_rectidy($root, ($dpth + 1), $ndnt);
     }
     $docu->appendChild($root);
     ($root)= $docu->findnodes('/');
@@ -282,8 +290,8 @@ sub tidy {
 }
 
 sub _rectidy { # recursively tidy up indent formatting of elements
-  my $self = shift(); my $node = shift(); my $dpth = shift();
-  my $sort = shift(); my $irep = shift();
+  my $self = shift(); my $node = shift();
+  my $dpth = shift(); my $ndnt = shift();
   my $tnod = undef; # temporary node which will get nodes surrounding children
   $tnod = XML::XPath::Node::Element->new($node->getName());
   foreach($node->findnodes('@*')) { # copy all attributes
@@ -300,27 +308,27 @@ sub _rectidy { # recursively tidy up indent formatting of elements
   foreach my $kidd (@kidz) {
     if($kidd->getNodeType() ne XML::XPath::Node::TEXT_NODE && (!$lkid ||
        $lkid->getNodeType() ne XML::XPath::Node::TEXT_NODE)) {
-      $tnod->appendChild(XML::XPath::Node::Text->new("\n" . ($sort x ($irep *  $dpth     ))));
+      $tnod->appendChild(XML::XPath::Node::Text->new("\n" . ($ndnt x $dpth)));
     }
     if($kidd->getNodeType() eq XML::XPath::Node::ELEMENT_NODE) {
       print "NR  Found new      elem:" . $kidd->getName() . " dpth:$dpth\n" if($DBUG);
       my @gkdz = $kidd->getChildNodes();
       if(@gkdz    && ($gkdz[0]->getNodeType() ne XML::XPath::Node::TEXT_NODE ||
         (@gkdz > 1 && $gkdz[1]->getNodeType() ne XML::XPath::Node::TEXT_NODE))) {
-        $kidd = $self->_rectidy($kidd, ($dpth + 1), $sort, $irep); # recursively tidy
+        $kidd = $self->_rectidy($kidd, ($dpth + 1), $ndnt); # recursively tidy
       }
     }
     $tnod->appendChild($kidd);
     $lkid = $kidd;
   }
-  $tnod->appendChild(XML::XPath::Node::Text->new("\n" . ($sort x ($irep * ($dpth - 1)))));
+  $tnod->appendChild(XML::XPath::Node::Text->new("\n" . ($ndnt x ($dpth - 1))));
   return($tnod);
 }
 
 sub prune { # remove a section of the tree at the xpath location parameter
   my $self = shift(); my $xplc = shift() || return(); # can't prune root node
   if(defined($self) && defined($xplc) && length($xplc) && $xplc ne '/') {
-    $self->reload(); # mk sure all nodes && internal XPath indexing is up2date
+    $self->reload(); # update all nodes && internal XPath indexing before find
     foreach($self->findnodes($xplc)) {
       print "Pruning:$xplc\n" if($DBUG);
       my $prnt = $_->getParentNode();

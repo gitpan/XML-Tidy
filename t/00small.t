@@ -57,7 +57,7 @@ $tobj->tidy();
 ok(defined($tobj));
 ok(diff($tobj, $tstC));
 
-$tobj->tidy('tabs');
+$tobj->tidy("\t");
 ok(defined($tobj));
 ok($tobj->get_xml(), $tstD);
 ok(diff($tobj, $tstD));
