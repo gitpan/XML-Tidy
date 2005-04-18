@@ -8,8 +8,8 @@ XML::Tidy - tidy indenting of XML documents
 
 VERSION
 
-This documentation refers to version 1.2.51HM2ae of 
-XML::Tidy, which was released on Mon Jan 17 22:02:36:40 2005.
+This documentation refers to version 1.2.54HJnFa of 
+XML::Tidy, which was released on Sun Apr 17 19:49:15:36 2005.
 
 SYNOPSIS
 
@@ -28,22 +28,14 @@ DESCRIPTION
 
 This module creates XML document objects (with inheritance from
 L<XML::XPath>) to tidy mixed-content (ie. non-data) text node
-indenting.
+indenting.  There are also some other handy member functions to
+compress && expand your XML document object (into either a
+compact XML representation or a binary one).
 
 2DO
 
-- add tests for XML::XPath::Node wrappers
-
-- add tests for toString
-
-- fix compress() comment bug
-
-- add tests for compress() && expand()
-
-- imp namespace option in compress()
-
-- mk tidy keep doc order when duping attz, namespaces,
-          (hopefully someday PIs) into temp $docu && $tnod
+- maybe add support for binary char && short ints && single-
+          precision floats in bcompress()
 
 - fix reload() from messing up unicode escaped &XYZ; components like
           Copyright &#xA9; -> © && Registered &#xAE; -> ®
@@ -97,25 +89,29 @@ examples:
   # Tidy up indenting with         one  (1) tab    per indent level
      $tidy_obj->tidy("\t");
 
-The default behavior is to use two (2) spaces (ie. '  ') for each
-indent level.  The Tidy object gets all mixed-content (ie. non-data)
-text nodes reformatted to appropriate indent levels according to tree
-nesting depth.
+The default behavior is to use two (2) spaces for each indent
+level. The Tidy object gets all mixed-content (ie. non-data)
+text nodes reformatted to appropriate indent levels according to
+tree nesting depth.
 
 NOTE: There seems to be a bug in L<XML::XPath> which does not allow
 finding XML processing instructions (PIs) properly so they have been
 commented out of tidy().  This means that tidy() unfortunately
 removes processing instructions from files it operates on.  I hope
 this shortcoming can be repaired in the near future.  tidy() also
-disturbs some XML escapes in whatever ways L<XML::XPath> does.
+disturbs some XML escapes in whatever ways L<XML::XPath> does.  It
+has also been brought to my attention that these modules also strip
+CDATA tags from XML files / data they operate on.  Even though
+CDATA tags don't seem very common, I wish they were easy to support.
+Hopefully the vast majority of files will work fine.
 
 compress()
 
 The compress() member function calls strip() on the Tidy object
-then creates comments ahead of the root element which contain the
-names of elements && attributes as they occurred with their
-respective element && attribute names represented as just an index
-throughout the document.
+then creates an encoded comment which contains the names of elements
+&& attributes as they occurred in the original document.  Their
+respective element && attribute names are replaced with just the
+appropriate index throughout the document.
 
 compress() can accept a parameter describing which node types to
 attempt to shrink down as abbreviations.  This parameter should be
@@ -129,12 +125,14 @@ include as in the following mapping:
   c = comment   nodes  *EXPERIMENTAL*
   n = namespace nodes  *not-yet-implemented*
 
-Attribute values ('v') && text nodes ('t') both seem to work fine as
-they are tokenized.  I have some bugs in the comment node compression
-which I haven't been able to find yet so that one should be avoided
-for now.  Since these three node types ('vtc') all require tokenization,
-they are not included in default compression ('ea').  An example call
-which includes values && text would be:
+Attribute values ('v') && text nodes ('t') both seem to work fine
+with current tokenization.  I've still labeled them EXPERIMENTAL
+because they seem more likely to cause problems than valid element
+or attribute key names.  I have some bugs in the comment node
+compression which I haven't been able to find yet so that one should
+be avoided for now.  Since these three node types ('vtc')
+all require tokenization, they are not included in default compression
+('ea').  An example call which includes values && text would be:
 
   $tidy_obj->compress('eatv');
 
@@ -147,10 +145,41 @@ expand()
 
 The expand() member function reads any XML::Tidy::compress comments
 from the Tidy object && uses them to reconstruct the document
-that was passed to compress().  These utilities together seem like
-a mildly useful way to tidy XML documents so they earned inclusion
-in this module.  compress() && expand() should be considered
-experimental.
+that was passed to compress().
+
+bcompress('BinaryOutputFilename.xtb')
+
+The bcompress() member function stores a binary representation of
+any Tidy object.  The format consists of:
+
+  0) a null-terminated version string
+  1) a byte specifying how many bytes later indices will be
+  2) the number of bytes from 1 above to designate the total string  count
+  3) the number of null-terminated strings from 2 above
+  4) the number of bytes from 1 above to designate the total integer count
+  5) the number of 4-byte integers         from 4 above
+  6) the number of bytes from 1 above to designate the total float   count
+  7) the number of double-precision floats from 6 above
+  8) node index sets until the end of the file
+
+Normal node index sets consist of two values.  The first is an index
+into the three lists (with the number of bytes from 1) as if they were
+all linear.  The second is a single-byte integer identifying the node type
+(using standard DOM node enumerations).
+
+A few special cases exist in node index sets though.  If the index is
+null, it is interpreted as a close-element tag (so no accompanying type
+value is read).  On the other end, when the index is non-zero, the type
+value is always read.  In the event that the type corresponds to an
+attribute or a processing-instruction, the next index is read (without
+another accompanying type value) in order to complete the data fields
+required by those node types.
+
+bexpand('BinaryInputFilename.xtb')
+
+The bexpand() member function reads a binary file which was
+previously written from bcompress().  bexpand() is an XML::Tidy
+object constructor like new().
 
 prune()
 
@@ -253,9 +282,17 @@ CHANGES
 
 Revision history for Perl extension XML::Tidy:
 
-- 1.2.51HM2ae  Mon Jan 17 22:02:36:40 2005
+- 1.2.54HJnFa  Sun Apr 17 19:49:15:36 2005
 
-* added compress() && expand()
+* added support for binary ints && floats in bcompress()
+
+* tightened up binary format && added pod
+
+- 1.2.54HDR1G  Sun Apr 17 13:27:01:16 2005
+
+* added bcompress() && bexpand()
+
+* added  compress() &&  expand()
 
 * added toString()
 
@@ -311,15 +348,16 @@ L<XML::XPath>            to use XPath statements to query && update XML
 
 L<XML::XPath::XMLParser> to parse XML documents into XPath objects
 
+L<Math::BaseCnv>         to handle base-64 indexing for compress() && expand()
+
 LICENSE
 
 Most source code should be Free!
   Code I have lawful authority over is && shall be!
 Copyright: (c) 2004, Pip Stuart.
 Copyleft : This software is licensed under the GNU General Public
-  License (version 2), && as such comes with NO WARRANTY.  Please
-  consult the Free Software Foundation (http://FSF.Org) for
-  important information about your freedom.
+  License (version 2).  Please consult the Free Software Foundation
+  (http://FSF.Org) for important information about your freedom.
 
 AUTHOR
 
