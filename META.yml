@@ -1,0 +1,23 @@
+--- #YAML:1.0
+name: XML-Tidy
+abstract: tidy indenting of XML documents
+version: 1.4.A7QCvHw
+author:
+  - Pip Stuart <Pip@CPAN.Org>
+license: gpl
+distribution_type: module
+requires:
+  Math::BaseCnv: 0
+  XML::XPath: 0
+  XML::XPath::XMLParser: 0
+recommends:
+build_requires:
+  Test: 0
+  Test::Pod: 0
+  Test::Pod::Coverage: 0
+urls:
+  license: HTTP://FSF.Org/licensing/licenses/gpl.txt
+meta-spec:
+  version: 1.3
+  url: HTTP://Module-Build.SourceForge.Net/META-spec-v1.3.html
+generated_by: e pkg v1.0.A2RJrKV

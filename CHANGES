@@ -1,0 +1,59 @@
+CHANGES
+    Revision history for Perl extension XML::Tidy:
+
+    - 1.4.A7QCvHw Mon Jul 26 12:57:17:58 2010
+        * hacked a little test for non-UTF-8 decl str to resolve FrankGoss'
+        need for ISO-8859-1 decl encoding to persist through tidying
+
+        * md sure META.yml is being generated correctly for the CPAN
+
+        * updated license to GPLv3
+
+    - 1.2.75BACCB Fri May 11 10:12:12:11 2007
+        * made "1.0" float binarize as just "1" int
+
+        * made ints signed && bounds checked
+
+        * added new('binary' => 'BinFilename.xtb') option
+
+    - 1.2.54HJnFa Sun Apr 17 19:49:15:36 2005
+        * fixed tidy() processing instruction stripping problem
+
+        * added support for binary ints && floats in bcompress()
+
+        * tightened up binary format && added pod
+
+    - 1.2.54HDR1G Sun Apr 17 13:27:01:16 2005
+        * added bcompress() && bexpand()
+
+        * added compress() && expand()
+
+        * added toString()
+
+    - 1.2.4CKBHxt Mon Dec 20 11:17:59:55 2004
+        * added exporting of XML::XPath::Node (DOM) constants
+
+        * added node object creation wrappers (like LibXML)
+
+    - 1.2.4CCJW4G Sun Dec 12 19:32:04:16 2004
+        * added optional 'xpath_loc' => to prune()
+
+    - 1.0.4CAJna1 Fri Dec 10 19:49:36:01 2004
+        * added optional 'filename' => to write()
+
+    - 1.0.4CAAf5B Fri Dec 10 10:41:05:11 2004
+        * removed 2nd param from tidy() so that 1st param is just indent
+        string
+
+        * fixed pod errors
+
+    - 1.0.4C9JpoP Thu Dec 9 19:51:50:25 2004
+        * added xplc option to write()
+
+        * added prune()
+
+    - 1.0.4C8K1Ah Wed Dec 8 20:01:10:43 2004
+        * inherited from XPath so that those methods can be called directly
+
+        * original version (separating Tidy.pm from Merge.pm)
+

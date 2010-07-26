@@ -5,6 +5,12 @@ t/01medium.t
 t/02large.t
 t/03prune.t
 bin/xmltidy
+t/00pod.t
+t/00podc.t
+ex/synopsis.pl
 MANIFEST.SKIP
 README
+CHANGES
+META.yml
 Makefile.PL
+Build.PL
