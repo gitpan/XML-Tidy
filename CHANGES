@@ -1,6 +1,9 @@
 CHANGES
     Revision history for Perl extension XML::Tidy:
 
+    - 1.6.A7RJKwl Tue Jul 27 19:20:58:47 2010
+        * added head2 POD for EXPORTED CONSTANTS to try to pass t/00podc.t
+
     - 1.4.A7QCvHw Mon Jul 26 12:57:17:58 2010
         * hacked a little test for non-UTF-8 decl str to resolve FrankGoss'
         need for ISO-8859-1 decl encoding to persist through tidying

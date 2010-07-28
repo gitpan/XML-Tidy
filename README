@@ -2,8 +2,8 @@ NAME
     XML::Tidy - tidy indenting of XML documents
 
 VERSION
-    This documentation refers to version 1.4.A7QCvHw of XML::Tidy, which was
-    released on Mon Jul 26 12:57:17:58 2010.
+    This documentation refers to version 1.6.A7RJKwl of XML::Tidy, which was
+    released on Tue Jul 27 19:20:58:47 2010.
 
 SYNOPSIS
       use XML::Tidy;
@@ -249,33 +249,34 @@ EXPORTED CONSTANTS
     XML::Tidy also exports the same node constants as XML::XPath::Node
     (which correspond to DOM values). These include:
 
-      UNKNOWN_NODE
-      ELEMENT_NODE
-      ATTRIBUTE_NODE
-      TEXT_NODE
-      CDATA_SECTION_NODE
-      ENTITY_REFERENCE_NODE
-      ENTITY_NODE
-      PROCESSING_INSTRUCTION_NODE
-      COMMENT_NODE
-      DOCUMENT_NODE
-      DOCUMENT_TYPE_NODE
-      DOCUMENT_FRAGMENT_NODE
-      NOTATION_NODE
-      ELEMENT_DECL_NODE
-      ATT_DEF_NODE
-      XML_DECL_NODE
-      ATTLIST_DECL_NODE
-      NAMESPACE_NODE
-
+  UNKNOWN_NODE
+=head2 ELEMENT_NODE
+=head2 ATTRIBUTE_NODE
+=head2 TEXT_NODE
+=head2 CDATA_SECTION_NODE
+=head2 ENTITY_REFERENCE_NODE
+=head2 ENTITY_NODE
+=head2 PROCESSING_INSTRUCTION_NODE
+=head2 COMMENT_NODE
+=head2 DOCUMENT_NODE
+=head2 DOCUMENT_TYPE_NODE
+=head2 DOCUMENT_FRAGMENT_NODE
+=head2 NOTATION_NODE
+=head2 ELEMENT_DECL_NODE
+=head2 ATT_DEF_NODE
+=head2 XML_DECL_NODE
+=head2 ATTLIST_DECL_NODE
+=head2 NAMESPACE_NODE
     XML::Tidy also exports:
 
-      STANDARD_XML_DECL
-
+  STANDARD_XML_DECL
     which returns a reasonable default XML declaration string.
 
 CHANGES
     Revision history for Perl extension XML::Tidy:
+
+    - 1.6.A7RJKwl Tue Jul 27 19:20:58:47 2010
+        * added head2 POD for EXPORTED CONSTANTS to try to pass t/00podc.t
 
     - 1.4.A7QCvHw Mon Jul 26 12:57:17:58 2010
         * hacked a little test for non-UTF-8 decl str to resolve FrankGoss'
