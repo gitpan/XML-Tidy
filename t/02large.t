@@ -1,16 +1,13 @@
 use Test;
 BEGIN { plan tests => 15 }
-
 use XML::Tidy;
-
 my $tobj; ok(1);
-
 sub diff { # test for difference between mem XPath obj && disk XML file
   my $tidy = shift() || return(0);
   my $tstd = shift();   return(0) unless(defined($tstd) && $tstd);
   my($root)= $tidy->findnodes('/');
   my $xdat = qq(<?xml version="1.0" encoding="utf-8"?>\n);
-  $xdat .= $_->toString() foreach($root->getChildNodes());
+  $xdat .= $_->toString() for($root->getChildNodes());
   # split root PI's && comments with newlines again
   $xdat =~ s/\?><\?/\?>\n<\?/g;
   $xdat =~ s/\?><!--/\?>\n<!--/g;
@@ -433,28 +430,23 @@ For details, please refer to the W3C software license at:
 		<include href="XMLSchema-instance.rng" />
 	</div>
 </grammar>|;
-
-$tobj = XML::Tidy->new($tst2);
-ok(defined($tobj));
-ok($tobj->get_xml(), $tst2);
-ok(diff($tobj, $tst2));
-ok($tobj->get_xml(), $tst2);
-
-$tobj->reload();
-ok(defined($tobj));
-ok(diff($tobj, $tst2));
-ok(defined($tobj));
-#ok($tobj->get_xml(), $tstI);
-ok(diff($tobj, $tstI));
-
-$tobj->strip();
-ok(defined($tobj));
-ok(diff($tobj, $tstJ));
-
-$tobj->tidy();
-ok(defined($tobj));
-ok(diff($tobj, $tstK));
-
-$tobj->tidy("\t");
-ok(defined($tobj));
-ok(diff($tobj, $tstL));
+           $tobj = XML::Tidy->new($tst2) ;
+ok(defined($tobj                       ));
+ok(        $tobj->get_xml(),      $tst2 );
+ok(   diff($tobj,                 $tst2));
+ok(        $tobj->get_xml(),      $tst2 );
+           $tobj->reload();
+ok(defined($tobj                       ));
+ok(   diff($tobj,                 $tst2));
+ok(defined($tobj                       ));
+#k(        $tobj->get_xml(),      $tstI );
+ok(   diff($tobj,                 $tstI));
+           $tobj->strip();
+ok(defined($tobj                       ));
+ok(   diff($tobj,                 $tstJ));
+           $tobj->tidy();
+ok(defined($tobj                       ));
+ok(   diff($tobj,                 $tstK));
+           $tobj->tidy("\t");
+ok(defined($tobj                       ));
+ok(   diff($tobj,                 $tstL));

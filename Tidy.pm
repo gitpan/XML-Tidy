@@ -8,7 +8,7 @@ use Carp;
 use Exporter;
 use Math::BaseCnv qw(:b64);
 use XML::XPath::XMLParser;
-our $VERSION     = '1.6.A7RJKwl'; our $PTVR = $VERSION; $PTVR =~ s/^\d+\.\d+\.//; # Please see `perldoc Time::PT` for an explanation of $PTVR.
+our $VERSION     = '1.8.B2AMvdl'; our $PTVR = $VERSION; $PTVR =~ s/^\d+\.\d+\.//; # Please see `perldoc Time::PT` for an explanation of $PTVR.
 @EXPORT = qw(
     UNKNOWN_NODE
     ELEMENT_NODE
@@ -55,8 +55,8 @@ sub new { my $clas = shift(); my $xpob = undef;
   elsif(   $_[0] =~ /\.xtb$/i                                       ){ $xpob = bexpand(@_   ); }
   else                                                               { $xpob = XML::XPath->new(@_);
     shift(@_) if($_[0] eq 'filename'); # special-case loading XML file with non-standard declaration
-    if(-r $_[0]){ # special-case loading XML file with non-standard declaration (but doesn't handle inline XML data or IORef yet)
-      open(XMLF,'<',$_[1]);$xmld = <XMLF>;close(XMLF);$xmld =~ s/(\?>).*/$1\n/; # if provided XML Declaration doesn't seem well-formed, ...
+    if($_[0] !~ /\n/ && -r $_[0]){ # special-case loading XML file with non-standard declaration (but doesn't handle inline XML data or IORef yet)
+      open(XMLF,'<',$_[0]);$xmld = <XMLF>;close(XMLF);$xmld =~ s/(\?>).*/$1\n/; # if provided XML Declaration doesn't seem well-formed, ...
       $xmld = qq(<?xml version="1.0" encoding="utf-8"?>\n) unless($xmld =~ /^<\?xml version="[^"]+" encoding="[^"]+" *\?>\n$/); # ...reset to Standard
     }
   }
@@ -413,15 +413,15 @@ sub _append_node { # place a node at the end of the proper array for bcompress
   my $intz = shift(); my $fltz = shift();
   my $ndty = shift(); my $node = shift();
   my $tokn = ''; my $aval = undef; # token key && attribute value strings
-  if     (${$node}->getNodeType() ==                ELEMENT_NODE) {
+  if     (  ${$node}->getNodeType() ==                ELEMENT_NODE) {
     $tokn = ${$node}->getName();
-  } elsif(${$node}->getNodeType() ==              ATTRIBUTE_NODE) {
+  } elsif(  ${$node}->getNodeType() ==              ATTRIBUTE_NODE) {
     $tokn = ${$node}->getName();      # attribute keys
     $aval = ${$node}->getNodeValue(); # attribute values
     $aval = '' unless(defined($aval));
-  } elsif(${$node}->getNodeType() ==              NAMESPACE_NODE) {
+  } elsif(  ${$node}->getNodeType() ==              NAMESPACE_NODE) {
     $tokn = ${$node}->toString();     # namespace prefix && expanded
-  } elsif(${$node}->getNodeType() == PROCESSING_INSTRUCTION_NODE) {
+  } elsif(  ${$node}->getNodeType() == PROCESSING_INSTRUCTION_NODE) {
     $tokn = ${$node}->getTarget();    # PI target
     $aval = ${$node}->getData();      # PI data
     $aval = '' unless(defined($aval));
@@ -777,7 +777,7 @@ XML::Tidy - tidy indenting of XML documents
 
 =head1 VERSION
 
-This documentation refers to version 1.6.A7RJKwl of XML::Tidy, which was released on Tue Jul 27 19:20:58:47 2010.
+This documentation refers to version 1.8.B2AMvdl of XML::Tidy, which was released on Thu Feb 10 22:57:39:47 2011.
 
 =head1 SYNOPSIS
 
@@ -1085,6 +1085,14 @@ Revision history for Perl extension XML::Tidy:
 
 =over 4
 
+=item - 1.8.B2AMvdl  Thu Feb 10 22:57:39:47 2011
+
+* aligned .t code
+
+* added test for newline before -r to try to resolve: HTTPS://RT.CPAN.Org/Ticket/Display.html?id=65471 (Thanks, Leandro.)
+
+* fixed off-by-one error when new gets a readable (non-newline) filename (that's not "filename" without a pre-'filename' param) to resolve: HTTPS://RT.CPAN.Org/Ticket/Display.html?id=65151 (Thanks, Simone.)
+
 =item - 1.6.A7RJKwl  Tue Jul 27 19:20:58:47 2010
 
 * added head2 POD for EXPORTED CONSTANTS to try to pass t/00podc.t
@@ -1133,7 +1141,7 @@ Revision history for Perl extension XML::Tidy:
 
 =item - 1.0.4CAJna1  Fri Dec 10 19:49:36:01 2004
 
-* added optional 'filename' => to write()
+* added optional 'filename'  => to write()
 
 =item - 1.0.4CAAf5B  Fri Dec 10 10:41:05:11 2004
 
@@ -1181,7 +1189,7 @@ L<Math::BaseCnv>         to handle base-64 indexing for compress() && expand()
 
 Most source code should be Free!
   Code I have lawful authority over is && shall be!
-Copyright: (c) 2004-2010, Pip Stuart.
+Copyright: (c) 2004-2011, Pip Stuart.
 Copyleft :  This software is licensed under the GNU General Public
   License (version 3).  Please consult the Free Software Foundation
   (http://FSF.Org) for important information about your freedom.

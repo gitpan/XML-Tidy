@@ -2,8 +2,8 @@ NAME
     XML::Tidy - tidy indenting of XML documents
 
 VERSION
-    This documentation refers to version 1.6.A7RJKwl of XML::Tidy, which was
-    released on Tue Jul 27 19:20:58:47 2010.
+    This documentation refers to version 1.8.B2AMvdl of XML::Tidy, which was
+    released on Thu Feb 10 22:57:39:47 2011.
 
 SYNOPSIS
       use XML::Tidy;
@@ -275,6 +275,17 @@ EXPORTED CONSTANTS
 CHANGES
     Revision history for Perl extension XML::Tidy:
 
+    - 1.8.B2AMvdl Thu Feb 10 22:57:39:47 2011
+        * aligned .t code
+
+        * added test for newline before -r to try to resolve:
+        HTTPS://RT.CPAN.Org/Ticket/Display.html?id=65471 (Thanks, Leandro.)
+
+        * fixed off-by-one error when new gets a readable (non-newline)
+        filename (that's not "filename" without a pre-'filename' param) to
+        resolve: HTTPS://RT.CPAN.Org/Ticket/Display.html?id=65151 (Thanks,
+        Simone.)
+
     - 1.6.A7RJKwl Tue Jul 27 19:20:58:47 2010
         * added head2 POD for EXPORTED CONSTANTS to try to pass t/00podc.t
 
@@ -356,7 +367,7 @@ FILES
 
 LICENSE
     Most source code should be Free! Code I have lawful authority over is &&
-    shall be! Copyright: (c) 2004-2010, Pip Stuart. Copyleft : This software
+    shall be! Copyright: (c) 2004-2011, Pip Stuart. Copyleft : This software
     is licensed under the GNU General Public License (version 3). Please
     consult the Free Software Foundation (http://FSF.Org) for important
     information about your freedom.

@@ -1,6 +1,17 @@
 CHANGES
     Revision history for Perl extension XML::Tidy:
 
+    - 1.8.B2AMvdl Thu Feb 10 22:57:39:47 2011
+        * aligned .t code
+
+        * added test for newline before -r to try to resolve:
+        HTTPS://RT.CPAN.Org/Ticket/Display.html?id=65471 (Thanks, Leandro.)
+
+        * fixed off-by-one error when new gets a readable (non-newline)
+        filename (that's not "filename" without a pre-'filename' param) to
+        resolve: HTTPS://RT.CPAN.Org/Ticket/Display.html?id=65151 (Thanks,
+        Simone.)
+
     - 1.6.A7RJKwl Tue Jul 27 19:20:58:47 2010
         * added head2 POD for EXPORTED CONSTANTS to try to pass t/00podc.t
 
