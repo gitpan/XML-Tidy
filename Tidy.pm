@@ -8,7 +8,7 @@ use Carp;
 use Exporter;
 use Math::BaseCnv qw(:b64);
 use XML::XPath::XMLParser;
-our $VERSION     = '1.8.B2AMvdl'; our $PTVR = $VERSION; $PTVR =~ s/^\d+\.\d+\.//; # Please see `perldoc Time::PT` for an explanation of $PTVR.
+our $VERSION     = '1.10.B52FpLx'; our $PTVR = $VERSION; $PTVR =~ s/^\d+\.\d+\.//; # Please see `perldoc Time::PT` for an explanation of $PTVR.
 @EXPORT = qw(
     UNKNOWN_NODE
     ELEMENT_NODE
@@ -56,8 +56,8 @@ sub new { my $clas = shift(); my $xpob = undef;
   else                                                               { $xpob = XML::XPath->new(@_);
     shift(@_) if($_[0] eq 'filename'); # special-case loading XML file with non-standard declaration
     if($_[0] !~ /\n/ && -r $_[0]){ # special-case loading XML file with non-standard declaration (but doesn't handle inline XML data or IORef yet)
-      open(XMLF,'<',$_[0]);$xmld = <XMLF>;close(XMLF);$xmld =~ s/(\?>).*/$1\n/; # if provided XML Declaration doesn't seem well-formed, ...
-      $xmld = qq(<?xml version="1.0" encoding="utf-8"?>\n) unless($xmld =~ /^<\?xml version="[^"]+" encoding="[^"]+" *\?>\n$/); # ...reset to Standard
+      open(XMLF,'<',$_[0]);$xmld = <XMLF>;close(XMLF);$xmld =~ s/(\?>).*/$1\n/ if(defined($xmld)); # if provided XML Declaration doesn't seem well-formed, ...
+      $xmld = qq(<?xml version="1.0" encoding="utf-8"?>\n) unless(defined($xmld) && $xmld =~ /^<\?xml version="[^"]+" encoding="[^"]+" *\?>\n$/); # ...reset to Standard
     }
   }
   my $self = bless($xpob, $clas); return($self); # self just a new XPath obj blessed into Tidy class
@@ -777,7 +777,7 @@ XML::Tidy - tidy indenting of XML documents
 
 =head1 VERSION
 
-This documentation refers to version 1.8.B2AMvdl of XML::Tidy, which was released on Thu Feb 10 22:57:39:47 2011.
+This documentation refers to version 1.10.B52FpLx of XML::Tidy, which was released on Mon May  2 15:51:21:59 2011.
 
 =head1 SYNOPSIS
 
@@ -1084,6 +1084,10 @@ which returns a reasonable default XML declaration string.
 Revision history for Perl extension XML::Tidy:
 
 =over 4
+
+=item - 1.10.B52FpLx  Mon May  2 15:51:21:59 2011
+
+* added tests for undefined non-standard XML declaration to suppress warnings
 
 =item - 1.8.B2AMvdl  Thu Feb 10 22:57:39:47 2011
 

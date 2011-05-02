@@ -2,8 +2,8 @@ NAME
     XML::Tidy - tidy indenting of XML documents
 
 VERSION
-    This documentation refers to version 1.8.B2AMvdl of XML::Tidy, which was
-    released on Thu Feb 10 22:57:39:47 2011.
+    This documentation refers to version 1.10.B52FpLx of XML::Tidy, which
+    was released on Mon May 2 15:51:21:59 2011.
 
 SYNOPSIS
       use XML::Tidy;
@@ -274,6 +274,10 @@ EXPORTED CONSTANTS
 
 CHANGES
     Revision history for Perl extension XML::Tidy:
+
+    - 1.10.B52FpLx Mon May 2 15:51:21:59 2011
+        * added tests for undefined non-standard XML declaration to suppress
+        warnings
 
     - 1.8.B2AMvdl Thu Feb 10 22:57:39:47 2011
         * aligned .t code

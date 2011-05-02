@@ -1,6 +1,10 @@
 CHANGES
     Revision history for Perl extension XML::Tidy:
 
+    - 1.10.B52FpLx Mon May 2 15:51:21:59 2011
+        * added tests for undefined non-standard XML declaration to suppress
+        warnings
+
     - 1.8.B2AMvdl Thu Feb 10 22:57:39:47 2011
         * aligned .t code
 
