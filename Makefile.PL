@@ -3,7 +3,7 @@ use ExtUtils::MakeMaker;
 #   the contents of the Makefile that is written.
 WriteMakefile(
   'NAME'         => 'XML::Tidy',
-  'VERSION'      => '1.10.B52FpLx',
+  'VERSION'      => '1.12.B55J2qn',
   'ABSTRACT'     => 'tidy indenting of XML documents',
   'AUTHOR'       => 'Pip Stuart <Pip@CPAN.Org>',
   'EXE_FILES'    => [ 

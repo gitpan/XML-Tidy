@@ -2,8 +2,8 @@ NAME
     XML::Tidy - tidy indenting of XML documents
 
 VERSION
-    This documentation refers to version 1.10.B52FpLx of XML::Tidy, which
-    was released on Mon May 2 15:51:21:59 2011.
+    This documentation refers to version 1.12.B55J2qn of XML::Tidy, which
+    was released on Thu May 5 19:02:52:49 2011.
 
 SYNOPSIS
       use XML::Tidy;
@@ -19,7 +19,7 @@ SYNOPSIS
 
 DESCRIPTION
     This module creates XML document objects (with inheritance from
-    XML::XPath) to tidy mixed-content (ie. non-data) text node indenting.
+    XML::XPath) to tidy mixed-content (i.e., non-data) text node indenting.
     There are also some other handy member functions to compress && expand
     your XML document object (into either a compact XML representation or a
     binary one).
@@ -48,18 +48,23 @@ USAGE
 
   reload()
     The reload() member function causes the latest data contained in a Tidy
-    object to be re-parsed which re-indexes all nodes. This can be necessary
-    after modifications have been made to nodes which impact the tree node
-    hierarchy because XML::XPath's find() member preserves state info which
-    can get out-of-sync. reload() is probably rarely useful by itself but it
-    is needed by strip() && prune() so it is exposed as a method in case it
-    comes in handy for other uses.
+    object to be re-parsed (which re-indexes all nodes).
+
+    This can be necessary after modifications have been made to nodes which
+    impact the tree node hierarchy because XML::XPath's find() member
+    preserves state information which can get out-of-sync.
+
+    reload() is probably rarely useful by itself but it is needed by strip()
+    && prune() so it is exposed as a method in case it comes in handy for
+    other uses.
 
   strip()
     The strip() member function searches the Tidy object for all
-    mixed-content (ie. non-data) text nodes && empties them out. This will
-    basically unformat any markup indenting. strip() is used by compress()
-    && tidy() but it is exposed because it could be worthwhile by itself.
+    mixed-content (i.e., non-data) text nodes && empties them out. This will
+    basically unformat any markup indenting.
+
+    strip() is used by compress() && tidy() but it is exposed because it
+    could be worthwhile by itself.
 
   tidy()
     The tidy() member function can take a single optional parameter as the
@@ -75,13 +80,14 @@ USAGE
          $tidy_obj->tidy("\t");
 
     The default behavior is to use two (2) spaces for each indent level. The
-    Tidy object gets all mixed-content (ie. non-data) text nodes reformatted
-    to appropriate indent levels according to tree nesting depth.
+    Tidy object gets all mixed-content (i.e., non-data) text nodes
+    reformatted to appropriate indent levels according to tree nesting
+    depth.
 
     NOTE: tidy() disturbs some XML escapes in whatever ways XML::XPath does.
     It has been brought to my attention that these modules also strip CDATA
     tags from XML files / data they operate on. Even though CDATA tags don't
-    seem very common, I wish they could work all right too. Hopefully the
+    seem very common, I wish they could work smoothly too. Hopefully the
     vast majority of files will work fine && support for other types can be
     added later.
 
@@ -98,11 +104,11 @@ USAGE
     following mapping:
 
       e = elements
-      a = attribute keys
+      a = attribute   keys
       v = attribute values *EXPERIMENTAL*
-      t = text      nodes  *EXPERIMENTAL*
-      c = comment   nodes  *EXPERIMENTAL*
-      n = namespace nodes  *not-yet-implemented*
+      t = text       nodes *EXPERIMENTAL*
+      c = comment    nodes *EXPERIMENTAL*
+      n = namespace  nodes *not-yet-implemented*
 
     Attribute values ('v') && text nodes ('t') both seem to work fine with
     current tokenization. I've still labeled them EXPERIMENTAL because they
@@ -113,9 +119,9 @@ USAGE
     in default compression ('ea'). An example call which includes values &&
     text would be:
 
-      $tidy_obj->compress('eatv');
+      $tidy_obj->compress('eavt');
 
-    The original document structure (ie. node hierarchy) is preserved.
+    The original document structure (i.e., node hierarchy) is preserved.
     compress() significantly reduces the file size of most XML documents for
     when size matters more than immediate human readability. expand()
     performs the opposite conversion.
@@ -132,9 +138,9 @@ USAGE
       0) a null-terminated version string
       1) a byte specifying how many bytes later indices will be
       2) the number of bytes from 1 above to designate the total string  count
-      3) the number of null-terminated strings          from 2 above
+      3) the number of null-terminated          strings from 2 above
       4) the number of bytes from 1 above to designate the total integer count
-      5) the number of 4-byte integers                  from 4 above
+      5) the number of 4-byte                  integers from 4 above
       6) the number of bytes from 1 above to designate the total float   count
       7) the number of 8-byte (double-precision) floats from 6 above
       8) node index sets until the end of the file
@@ -156,14 +162,9 @@ USAGE
     only works properly if the values are not surrounded by spaces or other
     delimiters && each is contained in its own single node. This is
     necessary to enable thorough reconstruction of whitespace from the
-    original document. Additionally, floats without any fractional part
-    (e.g. "1.0") will be encoded as an integer to save space so the decimal
-    point && empty fractional part will not be reconstructed for those
-    values since they are blatantly extraneous data. Please notify me if you
-    desire an option to preserve these or can think of a good reason why I
-    should not implement it this way. I recommend storing every numerical
-    value as an isolated attribute value or text node without any
-    surrounding whitespace.
+    original document. I recommend storing every numerical value as an
+    isolated attribute value or text node without any surrounding
+    whitespace.
 
       # Examples which encode all numbers as binary:
       <friend name="goodguy" category="15">
@@ -250,23 +251,23 @@ EXPORTED CONSTANTS
     (which correspond to DOM values). These include:
 
   UNKNOWN_NODE
-=head2 ELEMENT_NODE
-=head2 ATTRIBUTE_NODE
-=head2 TEXT_NODE
-=head2 CDATA_SECTION_NODE
-=head2 ENTITY_REFERENCE_NODE
-=head2 ENTITY_NODE
-=head2 PROCESSING_INSTRUCTION_NODE
-=head2 COMMENT_NODE
-=head2 DOCUMENT_NODE
-=head2 DOCUMENT_TYPE_NODE
-=head2 DOCUMENT_FRAGMENT_NODE
-=head2 NOTATION_NODE
-=head2 ELEMENT_DECL_NODE
-=head2 ATT_DEF_NODE
-=head2 XML_DECL_NODE
-=head2 ATTLIST_DECL_NODE
-=head2 NAMESPACE_NODE
+  ELEMENT_NODE
+  ATTRIBUTE_NODE
+  TEXT_NODE
+  CDATA_SECTION_NODE
+  ENTITY_REFERENCE_NODE
+  ENTITY_NODE
+  PROCESSING_INSTRUCTION_NODE
+  COMMENT_NODE
+  DOCUMENT_NODE
+  DOCUMENT_TYPE_NODE
+  DOCUMENT_FRAGMENT_NODE
+  NOTATION_NODE
+  ELEMENT_DECL_NODE
+  ATT_DEF_NODE
+  XML_DECL_NODE
+  ATTLIST_DECL_NODE
+  NAMESPACE_NODE
     XML::Tidy also exports:
 
   STANDARD_XML_DECL
@@ -274,6 +275,11 @@ EXPORTED CONSTANTS
 
 CHANGES
     Revision history for Perl extension XML::Tidy:
+
+    - 1.12.B55J2qn Thu May 5 19:02:52:49 2011
+        * made "1.0" float binarize as float again, rather than just "1" int
+
+        * cleaned up POD && fixed EXPORTED CONSTANTS heads blocking together
 
     - 1.10.B52FpLx Mon May 2 15:51:21:59 2011
         * added tests for undefined non-standard XML declaration to suppress
@@ -352,11 +358,11 @@ CHANGES
 INSTALL
     From the command shell, please run:
 
-        `perl -MCPAN -e "install XML::Tidy"`
+      `perl -MCPAN -e "install XML::Tidy"`
 
     or uncompress the package && run the standard:
 
-        `perl Makefile.PL; make; make test; make install`
+      `perl Makefile.PL; make; make test; make install`
 
 FILES
     XML::Tidy requires:
@@ -373,7 +379,7 @@ LICENSE
     Most source code should be Free! Code I have lawful authority over is &&
     shall be! Copyright: (c) 2004-2011, Pip Stuart. Copyleft : This software
     is licensed under the GNU General Public License (version 3). Please
-    consult the Free Software Foundation (http://FSF.Org) for important
+    consult the Free Software Foundation (HTTP://FSF.Org) for important
     information about your freedom.
 
 AUTHOR

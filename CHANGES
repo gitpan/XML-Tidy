@@ -1,6 +1,11 @@
 CHANGES
     Revision history for Perl extension XML::Tidy:
 
+    - 1.12.B55J2qn Thu May 5 19:02:52:49 2011
+        * made "1.0" float binarize as float again, rather than just "1" int
+
+        * cleaned up POD && fixed EXPORTED CONSTANTS heads blocking together
+
     - 1.10.B52FpLx Mon May 2 15:51:21:59 2011
         * added tests for undefined non-standard XML declaration to suppress
         warnings

@@ -1,7 +1,7 @@
 --- #YAML:1.0
 name: XML-Tidy
 abstract: tidy indenting of XML documents
-version: 1.10.B52FpLx
+version: 1.12.B55J2qn
 author:
   - Pip Stuart <Pip@CPAN.Org>
 license: gpl

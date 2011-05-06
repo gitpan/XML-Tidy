@@ -1,4 +1,4 @@
-# 4C3HOH1: XML::Tidy.pm by PipStuart <Pip@CPAN.Org> to tidy XML documents as parsed XML::XPath objects.
+# 4C3HOH1: XML::Tidy.pm by PipStuart<Pip@CPAN.Org> to tidy XML documents as parsed XML::XPath objects.
 package XML::Tidy;
 use strict;#use warnings;
 require      XML::XPath;
@@ -8,7 +8,7 @@ use Carp;
 use Exporter;
 use Math::BaseCnv qw(:b64);
 use XML::XPath::XMLParser;
-our $VERSION     = '1.10.B52FpLx'; our $PTVR = $VERSION; $PTVR =~ s/^\d+\.\d+\.//; # Please see `perldoc Time::PT` for an explanation of $PTVR.
+our $VERSION     = '1.12.B55J2qn'; our $PTVR = $VERSION; $PTVR =~ s/^\d+\.\d+\.//; # Please see `perldoc Time::PT` for an explanation of $PTVR.
 @EXPORT = qw(
     UNKNOWN_NODE
     ELEMENT_NODE
@@ -430,7 +430,7 @@ sub _append_node { # place a node at the end of the proper array for bcompress
   }
   if(defined($tokn) && length($tokn)) {
     unless(exists($flut->{$tokn})) {
-      if     ($tokn =~ s/^([+-]?\d+)(\.0)?$/$1/ && # unsigned 4294967295
+      if     ($tokn =~ /^([+-]?\d+)$/ && # unsigned 4294967295
               -2147483648 <= $tokn && $tokn <= 2147483647) {
         push(@{$intz}, $tokn);
         $flut->{$tokn} = 'l' . (scalar(@{$intz}) - 1);
@@ -445,7 +445,7 @@ sub _append_node { # place a node at the end of the proper array for bcompress
   }
   if(defined($aval) && length($aval)) {
     unless(exists($flut->{$aval})) {
-      if     ($aval =~ s/^([+-]?\d+)(\.0)?$/$1/ && # unsigned 4294967295
+      if     ($aval =~ /^([+-]?\d+)$/ && # unsigned 4294967295
               -2147483648 <= $aval && $aval <= 2147483647) {
         push(@{$intz}, $aval);
         $flut->{$aval} = 'l' . (scalar(@{$intz}) - 1);
@@ -505,16 +505,16 @@ sub bcompress { # compress an XML::Tidy object into a binary representation
   if   ($bsiz == 2) { $bpak = 'S'; }
   elsif($bsiz >  2) { $bpak = 'L'; $bsiz = 4; }
   # assume default XML declaration
-  open(DSTF, ">$dstf") or die "!*EROR*! Can't open binary DSTF: $dstf!\n";
+  open(DSTF,'>',$dstf) or die "!*EROR*! Can't open binary DSTF: $dstf!\n";
   binmode(DSTF);
   print DSTF $bstr;
   shift(@strz); shift(@strz); # element-close && empty-string are implied
   print DSTF pack("C$bpak", $bsiz, scalar(@strz));
-  print DSTF "$_\0" for(@strz);
+  print DSTF       "$_\0"             for(@strz) ;
   print DSTF pack( "$bpak",        scalar(@intz));
-  print DSTF pack('l', $_) for(@intz);
+  print DSTF pack('l',$_)             for(@intz) ;
   print DSTF pack( "$bpak",        scalar(@fltz));
-  print DSTF pack('d', $_) for(@fltz);
+  print DSTF pack('d',$_)             for(@fltz) ;
   while(@ndty) {
     my $indx = shift(@ndty);
     if(defined($indx) && $indx) {
@@ -560,9 +560,9 @@ sub bexpand { # uncompress a binary file back into an XML::Tidy object
   my @elst = (); # element stack to track tree reconstruction
   my $bsiz = 1; my $bpak = 'C'; my $rnam = ''; my $coun = 0;
   if(-r $srcf) {
-    open(SRCF, "<$srcf");
+    open(SRCF,'<',$srcf);
     binmode(SRCF);
-    $srcd = join('', <SRCF>);
+    $srcd = join('',<SRCF>);
     close(SRCF);
     $cstr = substr($srcd, 0, length($bstr), '');
     $bsiz = unpack('C', substr($srcd, 0, 1, ''));
@@ -721,7 +721,7 @@ sub write { # write out an XML file to disk from a Tidy object
     } else {
         ($root)= $self->findnodes('/');
     }
-    open( FILE, ">$flnm");
+    open( FILE,'>',$flnm);
     print FILE $xmld;
     print FILE $_->toString() , "\n" for($root->getChildNodes());
     close(FILE);
@@ -777,7 +777,7 @@ XML::Tidy - tidy indenting of XML documents
 
 =head1 VERSION
 
-This documentation refers to version 1.10.B52FpLx of XML::Tidy, which was released on Mon May  2 15:51:21:59 2011.
+This documentation refers to version 1.12.B55J2qn of XML::Tidy, which was released on Thu May  5 19:02:52:49 2011.
 
 =head1 SYNOPSIS
 
@@ -795,8 +795,8 @@ This documentation refers to version 1.10.B52FpLx of XML::Tidy, which was releas
 =head1 DESCRIPTION
 
 This module creates XML document objects (with inheritance from
-L<XML::XPath>) to tidy mixed-content (ie. non-data) text node
-indenting.  There are also some other handy member functions to
+L<XML::XPath>) to tidy mixed-content (i.e., non-data) text node
+indenting. There are also some other handy member functions to
 compress && expand your XML document object (into either a
 compact XML representation or a binary one).
 
@@ -818,9 +818,9 @@ compact XML representation or a binary one).
 
 =head2 new()
 
-This is the standard Tidy object constructor.  Except for the new
+This is the standard Tidy object constructor. Except for the new
 'binary' option, it can take the same parameters as an L<XML::XPath>
-object constructor to initialize the XML document object.  These can
+object constructor to initialize the XML document object. These can
 be any one of:
 
   'filename' => 'SomeFile.xml'
@@ -832,26 +832,29 @@ be any one of:
 =head2 reload()
 
 The reload() member function causes the latest data contained in
-a Tidy object to be re-parsed which re-indexes all nodes.
+a Tidy object to be re-parsed (which re-indexes all nodes).
+
 This can be necessary after modifications have been made to nodes
 which impact the tree node hierarchy because L<XML::XPath>'s find()
-member preserves state info which can get out-of-sync.  reload() is
-probably rarely useful by itself but it is needed by strip() &&
-prune() so it is exposed as a method in case it comes in handy for
-other uses.
+member preserves state information which can get out-of-sync.
+
+reload() is probably rarely useful by itself but it is needed by
+strip() && prune() so it is exposed as a method in case it comes in
+handy for other uses.
 
 =head2 strip()
 
 The strip() member function searches the Tidy object for all
-mixed-content (ie. non-data) text nodes && empties them out.
-This will basically unformat any markup indenting.  strip() is
-used by compress() && tidy() but it is exposed because it could be
-worthwhile by itself.
+mixed-content (i.e., non-data) text nodes && empties them out.
+This will basically unformat any markup indenting.
+
+strip() is used by compress() && tidy() but it is exposed because it
+could be worthwhile by itself.
 
 =head2 tidy()
 
 The tidy() member function can take a single optional parameter as
-the string that should be inserted for each indent level.  Some
+the string that should be inserted for each indent level. Some
 examples:
 
   # Tidy up indenting with default two  (2) spaces per indent level
@@ -864,14 +867,14 @@ examples:
      $tidy_obj->tidy("\t");
 
 The default behavior is to use two (2) spaces for each indent
-level. The Tidy object gets all mixed-content (ie. non-data)
+level. The Tidy object gets all mixed-content (i.e., non-data)
 text nodes reformatted to appropriate indent levels according to
 tree nesting depth.
 
-NOTE:  tidy() disturbs some XML escapes in whatever ways L<XML::XPath>
-does.  It has been brought to my attention that these modules also strip
-CDATA tags from XML files / data they operate on.  Even though
-CDATA tags don't seem very common, I wish they could work all right too.
+NOTE: tidy() disturbs some XML escapes in whatever ways L<XML::XPath>
+does. It has been brought to my attention that these modules also strip
+CDATA tags from XML files / data they operate on. Even though
+CDATA tags don't seem very common, I wish they could work smoothly too.
 Hopefully the vast majority of files will work fine && support for
 other types can be added later.
 
@@ -879,34 +882,34 @@ other types can be added later.
 
 The compress() member function calls strip() on the Tidy object
 then creates an encoded comment which contains the names of elements
-&& attributes as they occurred in the original document.  Their
+&& attributes as they occurred in the original document. Their
 respective element && attribute names are replaced with just the
 appropriate index throughout the document.
 
 compress() can accept a parameter describing which node types to
-attempt to shrink down as abbreviations.  This parameter should be
+attempt to shrink down as abbreviations. This parameter should be
 a string of just the first letters of each node type you wish to
 include as in the following mapping:
 
   e = elements
-  a = attribute keys
+  a = attribute   keys
   v = attribute values *EXPERIMENTAL*
-  t = text      nodes  *EXPERIMENTAL*
-  c = comment   nodes  *EXPERIMENTAL*
-  n = namespace nodes  *not-yet-implemented*
+  t = text       nodes *EXPERIMENTAL*
+  c = comment    nodes *EXPERIMENTAL*
+  n = namespace  nodes *not-yet-implemented*
 
 Attribute values ('v') && text nodes ('t') both seem to work fine
-with current tokenization.  I've still labeled them EXPERIMENTAL
+with current tokenization. I've still labeled them EXPERIMENTAL
 because they seem more likely to cause problems than valid element
-or attribute key names.  I have some bugs in the comment node
+or attribute key names. I have some bugs in the comment node
 compression which I haven't been able to find yet so that one should
-be avoided for now.  Since these three node types ('vtc')
+be avoided for now. Since these three node types ('vtc')
 all require tokenization, they are not included in default compression
-('ea').  An example call which includes values && text would be:
+('ea'). An example call which includes values && text would be:
 
-  $tidy_obj->compress('eatv');
+  $tidy_obj->compress('eavt');
 
-The original document structure (ie. node hierarchy) is preserved.
+The original document structure (i.e., node hierarchy) is preserved.
 compress() significantly reduces the file size of most XML documents
 for when size matters more than immediate human readability.
 expand() performs the opposite conversion.
@@ -920,43 +923,37 @@ that was passed to compress().
 =head2 bcompress('BinaryOutputFilename.xtb')
 
 The bcompress() member function stores a binary representation of
-any Tidy object.  The format consists of:
+any Tidy object. The format consists of:
 
   0) a null-terminated version string
   1) a byte specifying how many bytes later indices will be
   2) the number of bytes from 1 above to designate the total string  count
-  3) the number of null-terminated strings          from 2 above
+  3) the number of null-terminated          strings from 2 above
   4) the number of bytes from 1 above to designate the total integer count
-  5) the number of 4-byte integers                  from 4 above
+  5) the number of 4-byte                  integers from 4 above
   6) the number of bytes from 1 above to designate the total float   count
   7) the number of 8-byte (double-precision) floats from 6 above
   8) node index sets until the end of the file
 
-Normal node index sets consist of two values.  The first is an index
+Normal node index sets consist of two values. The first is an index
 (again the number of bytes long comes from 1) into the three lists as if
-they were all linear.  The second is a single-byte integer identifying the
+they were all linear. The second is a single-byte integer identifying the
 node type (using standard DOM node type enumerations).
 
-A few special cases exist in node index sets though.  If the index is
+A few special cases exist in node index sets though. If the index is
 null, it is interpreted as a close-element tag (so no accompanying type
-value is read).  On the other end, when the index is non-zero, the type
-value is always read.  In the event that the type corresponds to an
+value is read). On the other end, when the index is non-zero, the type
+value is always read. In the event that the type corresponds to an
 attribute or a processing instruction, the next index is read (without
 another accompanying type value) in order to complete the data fields
 required by those node types.
 
 NOTE: Please bear in mind that the encoding of binary integers && floats
 only works properly if the values are not surrounded by spaces or other
-delimiters && each is contained in its own single node.  This is
+delimiters && each is contained in its own single node. This is
 necessary to enable thorough reconstruction of whitespace from the
-original document.  Additionally, floats without any fractional
-part (e.g. "1.0") will be encoded as an integer to save space so the
-decimal point && empty fractional part will not be reconstructed for
-those values since they are blatantly extraneous data.  Please notify
-me if you desire an option to preserve these or can think of a good
-reason why I should not implement it this way.  I recommend storing
-every numerical value as an isolated attribute value or text node
-without any surrounding whitespace.
+original document. I recommend storing every numerical value as an
+isolated attribute value or text node without any surrounding whitespace.
 
   # Examples which encode all numbers as binary:
   <friend name="goodguy" category="15">
@@ -979,7 +976,7 @@ The default file extension is .xtb (for XML::Tidy binary).
 =head2 bexpand('BinaryInputFilename.xtb')
 
 The bexpand() member function reads a binary file which was
-previously written from bcompress().  bexpand() is an XML::Tidy
+previously written from bcompress(). bexpand() is an XML::Tidy
 object constructor like new() so it can be called like:
 
   my $xtbo = XML::Tidy->bexpand('BinaryInputFilename.xtb');
@@ -987,7 +984,7 @@ object constructor like new() so it can be called like:
 =head2 prune()
 
 The prune() member function takes an XPath location to remove (along
-with all attributes && child nodes) from the Tidy object.  For
+with all attributes && child nodes) from the Tidy object. For
 example, to remove all comments:
 
   $tidy_obj->prune('//comment()');
@@ -1001,7 +998,7 @@ Pruning your XML tree is a form of tidying too so it snuck in here. =)
 =head2 write()
 
 The write() member function can take an optional filename parameter
-to write out any changes to the Tidy object.  If no parameters
+to write out any changes to the Tidy object. If no parameters
 are given, write() overwrites the original XML document file (if
 a 'filename' parameter was given to the constructor).
 
@@ -1009,20 +1006,20 @@ write() will croak() if no filename can be found to write to.
 
 write() can also take a secondary parameter which specifies an XPath
 location to be written out as the new root element instead of the
-Tidy object's root.  Only the first matching element is written.
+Tidy object's root. Only the first matching element is written.
 
 =head2 toString()
 
 The toString() member function is almost identical to write() except
 that it takes no parameters && simply returns the equivalent XML
-string as a scalar.  It is a little weird because normally only
+string as a scalar. It is a little weird because normally only
 L<XML::XPath::Node> objects have a toString() member but I figure it
 makes sense to extend the same syntax to the parent object as well
 since it is a useful option.
 
 =head1 createNode Wrappers
 
-The following are just aliases to Node constructors.  They'll work with
+The following are just aliases to Node constructors. They'll work with
 just the unique portion of the node type as the member function name.
 
 =head2 e() or el() or elem() or createElement()
@@ -1052,25 +1049,42 @@ wrapper for XML::XPath::Node::Namespace->new()
 =head1 EXPORTED CONSTANTS
 
 XML::Tidy also exports the same node constants as L<XML::XPath::Node>
-(which correspond to DOM values).  These include:
+(which correspond to DOM values). These include:
 
 =head2 UNKNOWN_NODE
+
 =head2 ELEMENT_NODE
+
 =head2 ATTRIBUTE_NODE
+
 =head2 TEXT_NODE
+
 =head2 CDATA_SECTION_NODE
+
 =head2 ENTITY_REFERENCE_NODE
+
 =head2 ENTITY_NODE
+
 =head2 PROCESSING_INSTRUCTION_NODE
+
 =head2 COMMENT_NODE
+
 =head2 DOCUMENT_NODE
+
 =head2 DOCUMENT_TYPE_NODE
+
 =head2 DOCUMENT_FRAGMENT_NODE
+
 =head2 NOTATION_NODE
+
 =head2 ELEMENT_DECL_NODE
+
 =head2 ATT_DEF_NODE
+
 =head2 XML_DECL_NODE
+
 =head2 ATTLIST_DECL_NODE
+
 =head2 NAMESPACE_NODE
 
 XML::Tidy also exports:
@@ -1084,6 +1098,12 @@ which returns a reasonable default XML declaration string.
 Revision history for Perl extension XML::Tidy:
 
 =over 4
+
+=item - 1.12.B55J2qn  Thu May  5 19:02:52:49 2011
+
+* made "1.0" float binarize as float again, rather than just "1" int
+
+* cleaned up POD && fixed EXPORTED CONSTANTS heads blocking together
 
 =item - 1.10.B52FpLx  Mon May  2 15:51:21:59 2011
 
@@ -1171,11 +1191,11 @@ Revision history for Perl extension XML::Tidy:
 
 From the command shell, please run:
 
-    `perl -MCPAN -e "install XML::Tidy"`
+  `perl -MCPAN -e "install XML::Tidy"`
 
 or uncompress the package && run the standard:
 
-    `perl Makefile.PL; make; make test; make install`
+  `perl Makefile.PL; make; make test; make install`
 
 =head1 FILES
 
@@ -1195,8 +1215,8 @@ Most source code should be Free!
   Code I have lawful authority over is && shall be!
 Copyright: (c) 2004-2011, Pip Stuart.
 Copyleft :  This software is licensed under the GNU General Public
-  License (version 3).  Please consult the Free Software Foundation
-  (http://FSF.Org) for important information about your freedom.
+  License (version 3). Please consult the Free Software Foundation
+  (HTTP://FSF.Org) for important information about your freedom.
 
 =head1 AUTHOR
 
